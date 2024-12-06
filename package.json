@@ -1,0 +1,31 @@
+{
+  "name": "mrbilly",
+  "version": "1.0.0",
+  "description": "This is a practice project with helps restaurant billers to make bills and taking orders.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PriyanshiSoni11/mrbilly.git"
+  },
+  "author": "Priyanshi Soni",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PriyanshiSoni11/mrbilly/issues"
+  },
+  "homepage": "https://github.com/PriyanshiSoni11/mrbilly#readme",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.3",
+    "winston": "^3.17.0"
+  }
+}

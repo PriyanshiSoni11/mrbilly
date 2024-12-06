@@ -1,0 +1,43 @@
+<header class="w-full flex items-center justify-between bg-green-800 text-white py-4 px-8 shadow-md">
+    <h1 class="text-2xl font-bold">Order Management</h1>
+    <nav class="flex items-center space-x-4">
+        <!-- View Orders -->
+        <a href="/order/view" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700">
+            📋 View Orders
+        </a>
+
+        <!-- Kitchen -->
+        <a href="/order/kitchen" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700">
+            🍳 Kitchen
+        </a>
+
+        <!-- Order History -->
+        <a href="/order/history" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700">
+            🕒 History
+        </a>
+
+        <!-- New Order -->
+        <a id="newOrderButton" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700 transition duration-300">
+            ➕ New Order
+        </a>
+    </nav>
+</header>
+
+<script>
+    // Function to generate a random Order ID
+    function generateOrderId() {
+        const prefix = "ORD";
+        const randomNumber = Math.floor(1000000000 + Math.random() * 9000000000); // 10-digit random number
+        return `${prefix}${randomNumber}`;
+    }
+
+    // Dynamically set the URL for the New Order button
+    function setOrderButtonUrl() {
+        const newOrderButton = document.getElementById("newOrderButton");
+        const orderId = generateOrderId();
+        newOrderButton.href = `/order/take/${orderId}`;
+    }
+
+    // Set the button URL when the page loads
+    window.onload = setOrderButtonUrl;
+</script>

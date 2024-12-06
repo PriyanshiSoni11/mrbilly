@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Mr. Billy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <%- include('partials/headerForHome') %>
+    <% if(success.length>0){ %>
+      <div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-blue-500">
+        <span class="inline-block mt-1 mb-1 text-white">
+          <%= success %>
+        </span>
+      </div>
+      <% } %>
+        <!-- Main Content -->
+        <main class="max-w-6xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
+
+          <!-- Selected Menu -->
+          <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700">Selected Menu:</h2>
+            <% if (user.selectedMenu) { %>
+              <div class="p-4 bg-gray-100 rounded-md mt-2">
+                <span class="text-gray-900 font-medium text-xl">
+                  <%= user.selectedMenu.menuname %>
+                </span>
+              </div>
+              <div class="mt-4">
+                <button onclick="openMenuModal()"
+                  class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">
+                  Change Menu
+                </button>
+              </div>
+              <% } else { %>
+                <div class="p-4 bg-gray-100 rounded-md mt-2">
+                  <span class="text-gray-500">No menu selected.</span>
+                </div>
+                <div class="mt-4">
+                  <button onclick="openMenuModal()"
+                    class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-1000 transition duration-300">
+                    Select Menu
+                  </button>
+                </div>
+                <% } %>
+          </div>
+
+          <!-- All Menus -->
+          <div>
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Your All Menus:</h2>
+            <% if (user.menus && user.menus.length > 0) { %>
+              <ul class="divide-y divide-gray-200">
+                <% user.menus.forEach((menu) => { %>
+                  <li class="flex justify-between items-center py-4">
+                    <span class="text-lg text-gray-800"><%= menu.menuname %></span>
+                    <a href="/menu/edit/<%= menu._id %>" 
+                       class="text-blue-600 hover:text-blue-800 transition duration-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </a>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <p class="text-gray-500">You haven’t added any menus yet.</p>
+            <% } %>
+            
+            <!-- Add Menu Button -->
+            <div class="mt-4">
+              <a href="/menu/add" 
+                 class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300">
+                Add Menu
+              </a>
+            </div>
+          </div>
+          
+        </main>
+
+        <!-- Modal -->
+        <div id="menuModal" class="fixed inset-0 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Select a Menu</h2>
+            <% if (user.menus && user.menus.length> 0) { %>
+              <ul>
+                <% user.menus.forEach((menu)=> { %>
+                  <li class="flex items-center justify-between py-2">
+                    <span class="text-gray-800">
+                      <%= menu.menuname %>
+                    </span>
+                    <input type="radio" name="selectedMenu" value="<%= menu._id %>" />
+                  </li>
+                  <% }); %>
+              </ul>
+              <div class="mt-4 flex justify-end">
+                <button onclick="saveSelectedMenu()"
+                  class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300">
+                  Save
+                </button>
+                <button onclick="closeMenuModal()"
+                  class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300 ml-2">
+                  Cancel
+                </button>
+              </div>
+              <% } else { %>
+                <p class="text-gray-500">No menus available to select.</p>
+                <% } %>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-green-800 text-white py-4 mt-8">
+          <div class="text-center text-sm">© 2024 Mr. Billy. All rights reserved.</div>
+        </footer>
+
+        <!-- JavaScript -->
+        <script>
+          function openMenuModal() {
+            document.getElementById('menuModal').classList.remove('hidden');
+          }
+
+          function closeMenuModal() {
+            document.getElementById('menuModal').classList.add('hidden');
+          }
+
+          function saveSelectedMenu() {
+            const selectedMenuId = document.querySelector('input[name="selectedMenu"]:checked')?.value;
+            if (!selectedMenuId) {
+              alert('Please select a menu.');
+              return;
+            }
+
+            // Send data to backend (example: using Fetch API)
+            fetch('/menu/select', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ selectedMenu: selectedMenuId })
+            }).then((response) => {
+              if (response.ok) {
+                location.reload(); // Reload the page to reflect the selected menu
+              } else {
+                alert('Failed to save the selected menu.');
+              }
+            });
+          }
+        </script>
+
+</body>
+
+</html>

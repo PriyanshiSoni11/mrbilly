@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <header class="bg-green-800 text-white p-0 flex justify-between items-center">
+    <a href="#" id="takeOrderLink"></a>
+  </header>
+  <%- include('partials/headerForOrderView') %>
+    <!-- Main Layout -->
+    <div class="flex h-screen">
+
+      <!-- Groups (Left Sidebar) -->
+      <aside class="w-1/5 bg-gray-200 p-4 overflow-y-auto">
+        <h2 class="text-lg font-semibold mb-4">Groups</h2>
+        <ul id="groupsList" class="space-y-2">
+          <!-- Groups will be dynamically populated here -->
+        </ul>
+      </aside>
+
+      <!-- Items (Middle Section) -->
+      <section class="w-2/5 bg-white p-4 overflow-y-auto">
+        <h2 class="text-lg font-semibold mb-4">Items</h2>
+        <div id="itemsList" class="grid grid-cols-3 gap-4">
+          <!-- Items will be dynamically populated here -->
+        </div>
+      </section>
+
+      <!-- Order Summary (Right Sidebar) -->
+      <aside class="w-2/5 bg-gray-100 p-4 overflow-y-auto">
+        <h2 class="text-lg font-semibold mb-4">Order Summary</h2>
+        <!-- Dropdown for ordertype -->
+        <div class="mb-4">
+          <label for="ordertype" class="block text-sm font-medium text-gray-700">Order Type:</label>
+          <select id="ordertype" class="w-full p-2 border border-gray-300 rounded-md">
+            <option value="dinning" <%=order && order.ordertype==='dinning' ? 'selected' : '' %>>Dinning</option>
+            <option value="parcel" <%=order && order.ordertype==='parcel' ? 'selected' : '' %>>Parcel</option>
+            <option value="online" <%=order && order.ordertype==='online' ? 'selected' : '' %>>Online</option>
+          </select>
+        </div>
+
+
+
+        <!-- Table Numbers -->
+        <div class="mb-4">
+          <label for="tableNumber" class="block text-sm font-medium text-gray-700">Table Number:</label>
+          <select id="tableNumber" class="w-full p-2 border border-gray-300 rounded-md">
+            <option value="" disabled <%=!order || !order.table ? 'selected' : '' %>>Select Table Number</option>
+            <% for (let i=1; i <=tableCount; i++) { %>
+              <option value="<%= i %>" <%=order && order.table==i ? 'selected' : '' %>>Table <%= i %>
+              </option>
+              <% } %>
+          </select>
+
+        </div>
+
+        <!-- Order List -->
+        <ul id="orderList" class="space-y-2">
+          <% if (order && order.items && order.items.length> 0) { %>
+            <% order.items.forEach(item=> { %>
+              <li class="flex justify-between items-center">
+                <div>
+                  <h4 class="font-medium text-gray-700">
+                    <%= item.itemname %>
+                  </h4>
+                  <p class="text-sm text-gray-500">₹<%= item.price %> x <%= item.quantity %>
+                  </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button class="bg-gray-300 text-gray-700 px-2 py-1 rounded"
+                    onclick="decreaseQuantity('<%= item._id %>')">-</button>
+                  <button class="bg-gray-300 text-gray-700 px-2 py-1 rounded"
+                    onclick="increaseQuantity('<%= item._id %>')">+</button>
+                </div>
+              </li>
+              <% }); %>
+                <% } else { %>
+                  <li>No items in the order.</li>
+                  <% } %>
+        </ul>
+
+
+        <!-- Order Total -->
+        <div class="mt-4">
+          <div class="flex justify-between items-center">
+            <span class="text-lg font-semibold">Total:</span>
+            <span id="orderTotal" class="text-lg font-semibold">₹ <%=order && order.total !==0 ? order.total : 0 %>
+            </span>
+          </div>
+
+          <!-- Checkbox for isPaid -->
+          <div class="mt-4 flex items-center">
+            <input id="isPaid" type="checkbox"
+              class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+            <label for="isPaid" class="ml-2 text-sm font-medium text-gray-700">Is Paid</label>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex flex-wrap space-x-4 mt-4">
+            <button class="w-1/5 bg-red-800 text-white py-2 px-4 rounded-md hover:bg-red-600" onclick="saveOrder()">
+              Save Order
+            </button>
+            <button class="w-1/5 bg-green-800 text-white py-2 px-4 rounded-md hover:bg-green-600"
+              onclick="saveAndPrint('both')">
+              Save & Print Both
+            </button>
+            <button class="w-1/5 bg-zinc-600 text-white py-2 px-4 rounded-md hover:bg-zinc-400"
+              onclick="saveAndPrint('kot')">
+              Save & Print KOT
+            </button>
+            <button class="w-1/5 bg-zinc-600 text-white py-2 px-4 rounded-md hover:bg-zinc-400"
+              onclick="saveAndPrint('bill')">
+              Save & Print Bill
+            </button>
+          </div>
+        </div>
+      </aside>
+
+
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      const tableNumberSelect = document.getElementById('tableNumber');
+      const orderTable = '<%- order ? order.table : null %>'; // Pass the table number or null
+      tableNumberSelect.innerHTML = '<option value="" disabled>Select Table Number</option>';
+      const totalTable = parseInt('<%- tableCount %>', 10) || 10;
+      const selectedMenu = JSON.parse('<%- JSON.stringify(selectedMenu) %>');
+      const selectedOrder = {}; // Tracks selected items in the order
+      const groupList = document.getElementById('groupsList');
+      const itemsList = document.getElementById('itemsList');
+      const orderList = document.getElementById('orderList');
+      const orderId = '<%- orderId  %>'
+      const takeOrderLink = document.getElementById('takeOrderLink');
+      const randomOrderId = generateRandomOrderId();
+      takeOrderLink.href = `/order/take/${randomOrderId}`;
+      let totalAmount;
+
+      function loadOrder(order) {
+        if (order.items) {
+          order.items.forEach(item => {
+            selectedOrder[item._id] = {
+              ...item,
+              quantity: item.quantity || 1  // Ensure quantity is properly set
+            };
+          });
+        }
+
+        renderOrder()
+      }
+
+      for (let i = 1; i <= totalTable; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Table ${i}`;
+
+        // Preselect the option if it matches order.table
+        if (orderTable && parseInt(orderTable, 10) === i) {
+          option.selected = true;
+        }
+
+        tableNumberSelect.appendChild(option);
+      }
+
+      function generateRandomOrderId() {
+        return 'ORD' + Math.floor(1000000000 + Math.random() * 9000000000); // 10 digits
+      }
+
+      function renderGroups() {
+        groupList.innerHTML = '';
+        selectedMenu.groups.forEach((group, index) => {
+          const groupItem = document.createElement('li');
+          groupItem.className = 'cursor-pointer p-2 bg-white rounded-md hover:bg-gray-100';
+          groupItem.textContent = group.groupname;
+          groupItem.onclick = () => loadItems(index);
+          groupList.appendChild(groupItem);
+        });
+      }
+
+      function loadItems(groupIndex) {
+        itemsList.innerHTML = '';
+        const groupItems = selectedMenu.groups[groupIndex].items;
+        groupItems.forEach(item => {
+          const itemCard = document.createElement('div');
+          itemCard.className = 'p-4 bg-gray-100 rounded-md shadow hover:bg-gray-200 cursor-pointer';
+          itemCard.onclick = () => addItemToOrder(item);  // Correct item reference here
+          itemCard.innerHTML = `
+          <h3 class="font-medium text-gray-700">${item.itemname}</h3> <!-- Corrected here -->
+          <p class="text-sm text-gray-500">₹${item.price}</p>
+        `;
+          itemsList.appendChild(itemCard);
+        });
+      }
+
+      function addItemToOrder(item) {
+        // Check if the item already exists in the order
+        
+        if (selectedOrder[item._id]) {
+          // If item exists, increment the quantity
+          selectedOrder[item._id].quantity++;
+        } else {
+          // If item doesn't exist, add it to the order
+          selectedOrder[item._id] = {
+            ...item,
+            quantity: 1, // Default quantity is 1
+          };
+        }
+        renderOrder(); // Re-render the order list with updated items
+      }
+
+      function addPreviousItemToOrder(item, quantity) {
+        // Check if the item already exists in the order
+        if (selectedOrder[item._id]) {
+          // If item exists, increment the quantity
+          selectedOrder[item._id].quantity++;
+        } else {
+          // If item doesn't exist, add it to the order
+          selectedOrder[item._id] = {
+            ...item,
+            quantity, // Default quantity is 1
+          };
+        }
+        renderOrder(); // Re-render the order list with updated items
+      }
+
+      function decreaseQuantity(itemId) {
+        if (selectedOrder[itemId].quantity > 1) {
+          selectedOrder[itemId].quantity--;
+        } else {
+          delete selectedOrder[itemId]; // Delete the item when quantity is 1
+        }
+        renderOrder(); // Re-render after quantity change
+      }
+
+      function increaseQuantity(itemId) {
+        selectedOrder[itemId].quantity++;
+        renderOrder(); // Re-render after quantity change
+      }
+
+      function renderOrder() {
+        console.log(selectedOrder)
+        orderList.innerHTML = ''; // Clear previous order items to re-render
+        let total = 0;
+
+        Object.values(selectedOrder).forEach(orderItem => {
+          total += orderItem.price * orderItem.quantity;
+          const id = encodeURIComponent(orderItem._id).toString();
+          const orderCard = document.createElement('li');
+          orderCard.className = 'flex justify-between items-center';
+          orderCard.innerHTML = `
+      <div>
+        <h4 class="font-medium text-gray-700">${orderItem.itemname}</h4>
+        <p class="text-sm text-gray-500">₹${orderItem.price} x ${orderItem.quantity}</p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button class="bg-gray-300 text-gray-700 px-2 py-1 rounded" 
+            onclick="decreaseQuantity('${id}')">-</button>
+        <button class="bg-gray-300 text-gray-700 px-2 py-1 rounded" 
+            onclick="increaseQuantity('${id}')">+</button>
+      </div>
+    `;
+          orderList.appendChild(orderCard);
+        });
+        totalAmount = total; // Update the total
+        orderTotal.textContent = `₹${total}`;
+      }
+
+      async function saveOrder() {
+        const orderData = {
+          orderType: document.getElementById('ordertype').value,
+          tableNumber: document.getElementById('tableNumber').value,
+          items: selectedOrder,
+          isPaid: document.getElementById('isPaid').checked,
+          total: totalAmount,
+          orderId: orderId,
+          placedAt: new Date().toISOString(),
+          orderstatus: "placed"
+        };
+
+        let url = `/order/save/${orderId}`
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.redirected) {
+          window.location.href = response.url; // Handle redirection explicitly
+        }
+      }
+
+      async function saveAndPrint(printType) {
+        // Capture the order details
+        const orderData = {
+          orderType: document.getElementById('ordertype').value,  // Dining, Parcel, Online
+          tableNumber: document.getElementById('tableNumber').value,  // Selected table number
+          items: selectedOrder,  // The selected items in the order
+          isPaid: document.getElementById('isPaid').checked,  // Whether the order is paid or not
+          total: orderTotal.textContent,
+          orderId: orderId,
+        };
+
+        const response = await fetch(`/order/save/${orderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+
+        switch (printType) {
+          case 'kot':
+            alert('KOT Printed!');
+            break;
+          case 'bill':
+            alert('Bill Printed!');
+            break;
+          case 'both':
+            alert('KOT and Bill Printed!');
+            break;
+          default:
+            alert('Unknown print type!');
+        }
+      }
+
+      let order2 = JSON.parse('<%- JSON.stringify(order) %>') ? JSON.parse('<%- JSON.stringify(order) %>') : {};
+      loadOrder(order2)
+      renderGroups(); // Load groups on page load
+    </script>
+
+</body>
+
+</html>

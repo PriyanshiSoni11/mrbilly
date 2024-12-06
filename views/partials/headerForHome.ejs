@@ -1,0 +1,21 @@
+<header class="bg-green-800 text-white p-4 flex items-center justify-between">
+  <div class="ml-5">
+    <img src="/images/logo.png" alt="Mr. Billy Logo" class="h-16">
+  </div>
+  <nav class="mr-5">
+    <a href="/logout" class="text-white text-lg hover:text-red-600 transition duration-300">Logout</a>
+    <a href="/profile/edit" class="ml-3 text-white text-lg hover:text-blue-500 transition duration-300">Edit Profile</a>
+    <a href="#" id="takeOrderLink" class="ml-3 text-white text-lg hover:text-blue-500 transition duration-300">Take
+      Order</a>
+
+    <script>
+      function generateRandomOrderId() {
+        return 'ORD' + Math.floor(1000000000 + Math.random() * 9000000000); // 10 digits
+      }
+
+      const takeOrderLink = document.getElementById('takeOrderLink');
+      const randomOrderId = generateRandomOrderId();
+      takeOrderLink.href = `/order/take/${randomOrderId}`;
+    </script>
+  </nav>
+</header>

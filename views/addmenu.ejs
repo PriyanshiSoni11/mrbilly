@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Menu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <%- include('partials/headerForAddMenu') %>
+    <main class="max-w-4xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
+        <h2 class="text-2xl font-semibold text-green-800 text-center mb-6">Add Menu</h2>
+
+        <% if (error && error.length > 0) { %>
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+                <strong>Error:</strong> <%= error[0] %>
+            </div>
+        <% } %>
+        
+        <form action="/menu/save" method="POST" id="menu-form" class="space-y-6">
+            <!-- Menu Name -->
+            <div>
+                <label for="menu-name" class="block text-sm font-medium text-gray-700">Menu Name *</label>
+                <input type="text" id="menu-name" name="menuName" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none mt-2">
+            </div>
+
+            <!-- Groups -->
+            <div id="groups-container" class="space-y-6">
+                <!-- Groups will be added dynamically -->
+            </div>
+
+            <!-- Add Group Button -->
+            <div class="text-center">
+                <button type="button" id="add-group"
+                    class="bg-green-800 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
+                    + Add Group
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center mt-6">
+                <button type="submit" id="save-menu"
+                    class="bg-green-800 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300">
+                    Save Menu
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        const maxGroups = 20;
+        const maxItems = 50;
+
+        const groupsContainer = document.getElementById("groups-container");
+        const addGroupButton = document.getElementById("add-group");
+        const saveMenuButton = document.getElementById("save-menu");
+        const menuNameInput = document.getElementById("menu-name");
+
+        let groupCount = 0;
+        let allGroupNames = {}; // Object to store group names by their group ID
+        let allItemNames = {};  // Object to store item names by their group ID
+
+        addGroupButton.addEventListener("click", () => {
+            if (groupCount < maxGroups) {
+                groupCount++;
+                const groupId = `group-${groupCount}`;
+
+                const groupDiv = document.createElement("div");
+                groupDiv.setAttribute("id", groupId);
+                groupDiv.classList.add("p-4", "bg-gray-50", "rounded-lg", "border", "border-gray-300");
+
+                groupDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <!-- Group Header -->
+                        <span>
+                        Group Name: 
+                        <input type="text" id="${groupId}-name" placeholder="Group Name" name="groups[${groupCount - 1}][groupName]" required 
+                            class="font-semibold border-b border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        </span>
+                        <button type="button" class="text-green-800 hover:text-green-600" onclick="toggleGroup('${groupId}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                        </button>
+                    </div>
+
+                    <div id="${groupId}-details" class="mt-4">
+                        <!-- Enable Group -->
+                        <label for="${groupId}-group-enable" class="block text-sm font-medium text-gray-700">Enable Group</label>
+                        <input type="checkbox" id="${groupId}-group-enable" name="groups[${groupCount - 1}][isgroupenable]" 
+                        class="h-5 w-5 text-green-600 rounded-sm">
+
+                        <!-- Items Container -->
+                        <div id="${groupId}-items-container" class="mt-4 space-y-4">
+                        <!-- Items will be added dynamically -->
+                        </div>
+
+                        <!-- Add Item Button -->
+                        <div class="mt-4">
+                        <button type="button" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-400" 
+                            onclick="addItem('${groupId}')">
+                            + Add Item
+                        </button>
+                        </div>
+
+                        <!-- Save and Remove Group Button -->
+                        <div class="mt-4">
+                            <button type="button" class="text-red-500 hover:text-red-400 text-sm mt-2" onclick="removeGroup('${groupId}')">
+                                Remove Group
+                            </button>
+                            <button type="button" onclick="saveGroup('${groupId}')" 
+                                class="text-green-800 hover:text-green-600 text-sm ml-2">
+                                Save Group
+                            </button>
+                        </div>
+                    </div>
+                     `;
+
+                groupsContainer.appendChild(groupDiv);
+                allGroupNames[groupId] = new Set();  // Initialize set for group items
+                allItemNames[groupId] = new Set();  // Initialize set for group items names
+            } else {
+                alert(`You can only add up to ${maxGroups} groups.`);
+            }
+        });
+
+        function addItem(groupId) {
+            const itemsContainer = document.getElementById(`${groupId}-items-container`);
+            const itemsCount = itemsContainer.childElementCount;
+
+            if (itemsCount < maxItems) {
+                const itemId = `${groupId}-item-${itemsCount + 1}`;
+                const itemDiv = document.createElement("div");
+                itemDiv.setAttribute("id", itemId);
+                itemDiv.classList.add("p-2", "bg-white", "rounded", "shadow", "space-y-2", "relative");
+
+                itemDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span id="${itemId}-name-display" class="font-semibold text-gray-700">Item Name</span>
+                        <button type="button" class="text-green-800 hover:text-green-600" onclick="toggleItem('${itemId}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                        </button>
+                    </div>
+
+                    <div id="${itemId}-details">
+                        <label>Item Name: 
+                        <input type="text" name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][itemname]" required 
+                            class="p-2 border border-gray-300 rounded-lg w-full" 
+                            oninput="updateItemName('${itemId}', this.value)">
+                        </label>
+                        <label>Price: 
+                        <input type="number" name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][price]" required 
+                            class="p-2 border border-gray-300 rounded-lg w-full">
+                        </label>
+                        <label>Is Veg: 
+                        <input type="checkbox" name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][isveg]" 
+                            class="h-5 w-5 text-green-600 rounded-sm">
+                        </label>
+                        <label>Is Enabled: 
+                        <input type="checkbox" name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][isenabled]" 
+                            class="h-5 w-5 text-green-600 rounded-sm">
+                        </label>
+                        <label>Calories: 
+                        <input type="number" name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][calories]" 
+                            class="p-2 border border-gray-300 rounded-lg w-full">
+                        </label>
+                        <label>Description: 
+                        <textarea name="groups[${groupId.split("-")[1] - 1}][items][${itemsCount}][description]" rows="3" 
+                            class="p-2 border border-gray-300 rounded-lg w-full"></textarea>
+                        </label>
+                        <button type="button" class="text-red-500 hover:text-red-400 text-sm mt-2" onclick="removeItem('${itemId}')">
+                        Remove Item
+                        </button>
+                        <button type="button" onclick="saveItem('${itemId}')" 
+                        class="text-green-800 hover:text-green-600 text-sm ml-2">
+                        Save Item
+                        </button>
+                    `;
+
+                itemsContainer.appendChild(itemDiv);
+                allItemNames[groupId].add(itemId);
+            } else {
+                alert(`You can only add up to ${maxItems} items per group.`);
+            }
+        }
+
+        function updateItemName(itemId, name) {
+            const itemNameDisplay = document.getElementById(`${itemId}-name-display`);
+            itemNameDisplay.textContent = name;
+        }
+
+        function removeItem(itemId) {
+            const itemDiv = document.getElementById(itemId);
+            itemDiv.remove();
+        }
+
+        function toggleGroup(groupId) {
+            const groupDetails = document.getElementById(`${groupId}-details`);
+            groupDetails.classList.toggle("hidden");
+        }
+
+        function toggleItem(itemId) {
+            const itemDetails = document.getElementById(`${itemId}-details`);
+            itemDetails.classList.toggle("hidden");
+        }
+
+        function saveItem(itemId) {
+            // Get the item name input field directly
+            const itemNameInput = document.querySelector(`#${itemId}-details input[name*="itemname"]`);
+            const itemPrice = document.querySelector(`#${itemId}-details input[name*="price"]`);
+
+            const itemName = itemNameInput ? itemNameInput.value.trim() : ''; // Safely access input value
+            const itemPriceValue = itemPrice ? itemPrice.value.trim() : ''; // Safely access price value
+
+            // Check if the item name and price are filled
+            if (itemName === '' || itemPriceValue === '') {
+                alert('Please fill in the Item Name and Price before saving!');
+                return;
+            }
+
+            // If valid, collapse the item details section
+            const itemDetails = document.getElementById(`${itemId}-details`);
+            if (itemDetails) {
+                itemDetails.classList.add("hidden"); // Collapse item details
+            }
+
+            // Update item name display
+            const itemNameDisplay = document.getElementById(`${itemId}-name-display`);
+            if (itemNameDisplay) {
+                itemNameDisplay.textContent = itemName; // Update item name display
+            }
+        }
+
+        function saveGroup(groupId) {
+            const groupNameInput = document.getElementById(`${groupId}-name`);
+            const groupName = groupNameInput ? groupNameInput.value.trim() : ''; // Safely access group name value
+
+            // Check if the group name is filled
+            if (groupName === '') {
+                alert('Please fill in the Group Name before saving!');
+                return;
+            }
+
+            // If valid, collapse the group details section
+            const groupDetails = document.getElementById(`${groupId}-details`);
+            if (groupDetails) {
+                groupDetails.classList.add("hidden"); // Collapse group details
+            }
+        }
+
+
+        saveMenuButton.addEventListener("click", (event) => {
+            // Validate form fields if needed
+            const menuName = document.getElementById('menu-name').value.trim();
+
+            if (menuName === '') {
+                document.getElementById('menu-name-error').classList.remove('hidden');
+            } else {
+                // Hide the error message if the name is valid
+                document.getElementById('menu-name-error').classList.add('hidden');
+
+                // Proceed with form submission
+                document.getElementById("menu-form").submit();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
