@@ -7,6 +7,7 @@ module.exports.takeOrder = async function (req, res) {
     let order = await orderModel.findOne({ orderid: req.params.orderId })
     res.render("takeorders", { selectedMenu: user.selectedMenu, tableCount: req.user.tablecount, orderId: req.params.orderId, order: order || null })
 }
+
 module.exports.saveOrder = async function (req, res) {
     try {
         let { orderstatus, orderType, tableNumber, placedAt, items, isPaid, total, orderId } = req.body;
@@ -29,7 +30,6 @@ module.exports.saveOrder = async function (req, res) {
                 table: tableNumber,
                 orderid: orderId,
                 ispaid: isPaid,
-                placedAt,
                 total,
                 ordertype: orderType,
                 items: formattedItems,
@@ -90,6 +90,7 @@ module.exports.viewOrder = async function (req, res) {
     let orders = await orderModel.find({ orderstatus: { $ne: 'completed' } });
     res.render("orderView", { orders, success })
 }
+
 module.exports.kitchenView = async function (req, res) {
     let success = req.flash("success")
     let error = req.flash("error")

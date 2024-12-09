@@ -33,144 +33,162 @@
 </head>
 
 <body class="bg-gray-100">
-    <%- include('partials/headerForOrderView') %>
+    <%- include('partials/top') %>
+        <%- include('partials/headerForOrderView') %>
 
-        <% if (success.length> 0) { %>
-            <div id="flashMessage"
-                class="absolute top-5 left-1/2 transform -translate-x-1/2 p-3 rounded-md bg-blue-500">
-                <span class="inline-block mt-1 mb-1 text-white">
-                    <%= success %>
-                </span>
-            </div>
-            <script>
-                // Automatically remove the flash message after 2 seconds
-                setTimeout(() => {
-                    const flashMessage = document.getElementById('flashMessage');
-                    if (flashMessage) {
-                        flashMessage.style.transition = "opacity 0.5s";
-                        flashMessage.style.opacity = 0; // Fade out
-                        setTimeout(() => flashMessage.remove(), 500); // Remove completely after fade-out
-                    }
-                }, 1500);
-            </script>
-            <% } %>
-
-
-                <!-- Orders Container -->
-                <div class="p-6 flex flex-wrap gap-6">
-                    <% orders.forEach(order=> { %>
-                        <div class="relative bg-white rounded-lg shadow-md p-4 space-y-4"
-                            style="width: 320px; min-height: 450px;">
-                            <!-- Bookmark -->
-                            <% if (order.ispaid) { %>
-                                <div
-                                    class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                    Paid
-                                </div>
-                                <% } else { %>
-                                    <div
-                                        class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                        Unpaid
-                                    </div>
-                                    <% } %>
-
-                                        <!-- Order Header -->
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <h3 class="text-lg font-semibold">Order ID: <%= order.orderid %>
-                                                </h3>
-                                                <p class="text-sm text-gray-500">Order Type: <%= order.ordertype %>
-                                                </p>
-                                            </div>
-                                            <div class="text-sm text-gray-500">Table: <%= order.table %>
-                                            </div>
-                                        </div>
-
-                                        <!-- Timer -->
-                                        <div class="text-sm text-gray-500">
-                                            Time since placed:
-                                            <span id="timer-<%= order.orderid %>"
-                                                data-start-time="<%= order.placedAt %>"></span>
-                                        </div>
-
-                                        <!-- Order Items -->
-                                        <ul class="space-y-2">
-                                            <% order.items.forEach(item=> { %>
-                                                <li class="flex justify-between items-center">
-                                                    <div>
-                                                        <p class="text-md font-medium">
-                                                            <%= item.itemname %>
-                                                        </p>
-                                                        <p class="text-sm text-gray-500">₹<%= item.price %> x <%=
-                                                                    item.quantity %>
-                                                        </p>
-                                                    </div>
-                                                    <div class="flex flex-col items-end">
-                                                        <div class="text-sm text-gray-500">₹<%= item.price *
-                                                                item.quantity %>
-                                                        </div>
-
-                                                        <!-- Item Status with Colored Emoji -->
-                                                        <div class="mt-1 text-xs font-medium flex items-center gap-1">
-                                                            <% if (item.status==="ordered" ) { %>
-                                                                <span class="text-blue-500">🛒</span>
-                                                                <% } else if (item.status==="cooking" ) { %>
-                                                                    <span class="text-yellow-500">🍳</span>
-                                                                    <% } else if (item.status==="ready" ) { %>
-                                                                        <span class="text-green-500">✅</span>
-                                                                        <% } else if (item.status==="delivered" ) { %>
-                                                                            <span class="text-purple-500">📦
-                                                                                Delivered</span>
-                                                                            <% } else if (item.status==="canceled" ) {
-                                                                                %>
-                                                                                <span class="text-red-500">❌
-                                                                                    Canceled</span>
-                                                                                <% } else { %>
-                                                                                    <span class="text-gray-500">❓
-                                                                                        Unknown</span>
-                                                                                    <% } %>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <% }) %>
-                                        </ul>
-
-
-                                        <!-- Subtotal -->
-                                        <div class="flex justify-between items-center mt-4 font-semibold">
-                                            <span>Subtotal:</span>
-                                            <span>₹<%= order.items.reduce((acc, item)=> acc + (item.price *
-                                                    item.quantity), 0) %></span>
-                                        </div>
-
-                                        <form action="/order/complete/<%= order.orderid %>" method="POST"
-                                            class="mt-4 space-y-2">
-                                            <!-- Payment Checkbox -->
-                                            <% if (!order.ispaid) { %>
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" id="isPaid-<%= order.orderid %>"
-                                                        name="isPaid" value="true" class="mr-2">
-                                                    <label for="isPaid-<%= order.orderid %>"
-                                                        class="text-sm text-gray-500">Is Paid</label>
-                                                </div>
-                                                <% } %>
-
-                                                    <!-- Complete Order Button -->
-                                                    <button type="submit"
-                                                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-center">
-                                                        Mark as Completed
-                                                    </button>
-                                        </form>
-
-                                        <!-- Modify Order Button -->
-                                        <a href="/order/take/<%= order.orderid %>"
-                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-center block mt-2">
-                                            Modify Order
-                                        </a>
-
-                        </div>
-                        <% }) %>
+            <% if (success.length> 0) { %>
+                <div id="flashMessage"
+                    class="absolute top-5 left-1/2 transform -translate-x-1/2 p-3 rounded-md bg-blue-500">
+                    <span class="inline-block mt-1 mb-1 text-white">
+                        <%= success %>
+                    </span>
                 </div>
+                <script>
+                    // Automatically remove the flash message after 2 seconds
+                    setTimeout(() => {
+                        const flashMessage = document.getElementById('flashMessage');
+                        if (flashMessage) {
+                            flashMessage.style.transition = "opacity 0.5s";
+                            flashMessage.style.opacity = 0; // Fade out
+                            setTimeout(() => flashMessage.remove(), 500); // Remove completely after fade-out
+                        }
+                    }, 1500);
+                </script>
+                <% } %>
+
+
+                    <!-- Orders Container -->
+                    <div class="p-6 flex flex-wrap gap-6">
+                        <% orders.forEach(order=> { %>
+                            <div class="relative bg-white rounded-lg shadow-md p-4 space-y-4"
+                                style="width: 320px; min-height: 450px;">
+                                <!-- Bookmark -->
+                                <% if (order.ispaid) { %>
+                                    <div
+                                        class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                        Paid
+                                    </div>
+                                    <% } else { %>
+                                        <div
+                                            class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                            Unpaid
+                                        </div>
+                                        <% } %>
+
+                                            <!-- Order Header -->
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <h3 class="text-lg font-semibold">Order ID: <%= order.orderid %>
+                                                    </h3>
+                                                    <p class="text-sm text-gray-500">Order Type: <%= order.ordertype %>
+                                                    </p>
+                                                </div>
+                                                <div class="text-sm text-gray-500">Table: <%= order.table %>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="text-sm text-gray-500 bg-blue-100 border border-blue-300 rounded px-2 py-1">
+                                                <strong>Time since placed:</strong>
+                                                <span id="timer-<%= order.orderid %>"
+                                                    data-start-time="<%= order.placedAt %>"
+                                                    class="font-semibold text-gray-700"></span>
+                                            </div>
+
+
+                                            <!-- Order Items -->
+                                            <ul class="space-y-2">
+                                                <% order.items.forEach(item=> { %>
+                                                    <li class="flex justify-between items-center">
+                                                        <div>
+                                                            <p class="text-md font-medium">
+                                                                <%= item.itemname %>
+                                                            </p>
+                                                            <p class="text-sm text-gray-500">₹<%= item.price %> x <%=
+                                                                        item.quantity %>
+                                                            </p>
+                                                        </div>
+                                                        <div class="flex flex-col items-end">
+                                                            <div class="text-sm text-gray-500">₹<%= item.price *
+                                                                    item.quantity %>
+                                                            </div>
+
+                                                            <!-- Item Status with Colored Emoji -->
+                                                            <div
+                                                                class="mt-1 text-xs font-medium flex items-center gap-1">
+                                                                <% if (item.status==="ordered" ) { %>
+                                                                    <span class="text-blue-500">🛒</span>
+                                                                    <% } else if (item.status==="cooking" ) { %>
+                                                                        <span class="text-yellow-500">🍳</span>
+                                                                        <% } else if (item.status==="ready" ) { %>
+                                                                            <span class="text-green-500">✅</span>
+                                                                            <% } else if (item.status==="delivered" ) {
+                                                                                %>
+                                                                                <span class="text-purple-500">📦
+                                                                                    Delivered</span>
+                                                                                <% } else if (item.status==="canceled" )
+                                                                                    { %>
+                                                                                    <span class="text-red-500">❌
+                                                                                        Canceled</span>
+                                                                                    <% } else { %>
+                                                                                        <span class="text-gray-500">❓
+                                                                                            Unknown</span>
+                                                                                        <% } %>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <% }) %>
+                                            </ul>
+
+
+                                            <!-- Subtotal -->
+                                            <div class="flex justify-between items-center mt-4 font-semibold">
+                                                <span>Subtotal:</span>
+                                                <span>₹<%= order.items.reduce((acc, item)=> acc + (item.price *
+                                                        item.quantity), 0) %></span>
+                                            </div>
+
+                                            <form action="/order/complete/<%= order.orderid %>" method="POST"
+                                                class="mt-4 space-y-2"
+                                                onsubmit="return validatePayment('<%= order.orderid %>')">
+                                                <!-- Payment Checkbox -->
+                                                <% if (!order.ispaid) { %>
+                                                    <div class="flex items-center">
+                                                        <input type="checkbox" id="isPaid-<%= order.orderid %>"
+                                                            name="isPaid" value="true" class="mr-2">
+                                                        <label for="isPaid-<%= order.orderid %>"
+                                                            class="text-sm text-gray-500">Is Paid</label>
+                                                    </div>
+                                                    <% } %>
+
+                                                        <!-- Complete Order Button -->
+                                                        <button type="submit"
+                                                            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-center">
+                                                            Mark as Completed
+                                                        </button>
+                                            </form>
+
+
+                                            <!-- Modify Order Button -->
+                                            <a href="/order/take/<%= order.orderid %>"
+                                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-center block mt-2">
+                                                Modify Order
+                                            </a>
+
+                            </div>
+                            <% }) %>
+                    </div>
 </body>
+<script>
+    function validatePayment(orderId) {
+        const isPaidCheckbox = document.getElementById(`isPaid-${orderId}`);
+        if (!isPaidCheckbox || !isPaidCheckbox.checked) {
+            alert("Warning: Please confirm payment before marking the order as complete.");
+            return false; // Prevent form submission
+        }
+        return true; // Allow form submission
+    }
+</script>
+
 
 </html>

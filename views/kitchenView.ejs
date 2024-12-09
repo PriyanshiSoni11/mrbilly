@@ -9,42 +9,36 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         .delayed {
-            background-color: #ffe5e5; /* Light red */
-            border-color: #ff6b6b; /* Red */
+            background-color: #ffe5e5;
+            /* Light red */
+            border-color: #ff6b6b;
+            /* Red */
         }
 
-        .timer {
-            font-size: 0.75rem;
-            padding: 2px 4px;
-            border-radius: 4px;
-            margin-right: 8px;
-            display: inline-block;
-        }
-
-        .delayed-timer {
-            background-color: red;
-            color: white;
+        .text-lg-important {
+            font-size: 1rem; /* Adjust font size for table number and quantity */
         }
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
-    <%- include('partials/headerForOrderView') %>
+<body class="bg-gray-100 w-full h-full flex flex-col items-center">
+    <%- include('partials/top') %>
+    <%- include('partials/headerForKitchenView') %>
 
     <% if (success.length > 0) { %>
-        <div id="flashMessage" class="absolute top-5 left-1/2 transform -translate-x-1/2 p-3 rounded-md bg-blue-500">
+        <div id="flashMessage"
+            class="absolute top-5 left-1/2 transform -translate-x-1/2 p-3 rounded-md bg-blue-500">
             <span class="inline-block mt-1 mb-1 text-white">
                 <%= success %>
             </span>
         </div>
         <script>
-            // Automatically remove the flash message after 2 seconds
             setTimeout(() => {
                 const flashMessage = document.getElementById('flashMessage');
                 if (flashMessage) {
                     flashMessage.style.transition = "opacity 0.5s";
-                    flashMessage.style.opacity = 0; // Fade out
-                    setTimeout(() => flashMessage.remove(), 500); // Remove completely after fade-out
+                    flashMessage.style.opacity = 0;
+                    setTimeout(() => flashMessage.remove(), 500);
                 }
             }, 1500);
         </script>
@@ -58,13 +52,12 @@
             </span>
         </div>
         <script>
-            // Automatically remove the flash message after 2 seconds
             setTimeout(() => {
                 const flashMessage = document.getElementById('flashMessage');
                 if (flashMessage) {
                     flashMessage.style.transition = "opacity 0.5s";
-                    flashMessage.style.opacity = 0; // Fade out
-                    setTimeout(() => flashMessage.remove(), 500); // Remove completely after fade-out
+                    flashMessage.style.opacity = 0;
+                    setTimeout(() => flashMessage.remove(), 500);
                 }
             }, 1500);
         </script>
@@ -77,16 +70,13 @@
         <!-- right Side: Cooking -->
         <div class="bg-white shadow rounded-lg p-4">
             <h2 class="text-lg font-semibold mb-4">Cooking Items</h2>
-            <div id="cooking" class="space-y-2 min-h-[300px] bg-gray-50 rounded p-2 border border-gray-200">
+            <div id="cooking"
+                class="space-y-2 min-h-[300px] bg-gray-50 rounded p-2 border border-gray-200">
                 <% items.filter(item => item.status === "cooking").forEach(item => { %>
                     <div id="<%= item._id %>"
                         class="draggable bg-yellow-100 border border-yellow-300 rounded p-3">
-                        <p class="font-medium flex items-center">
-                            <!-- Timer before Item Name -->
-                            <span id="timer-<%= item._id %>" class="timer">0:00</span>
-                            <%= item.itemname %>
-                        </p>
-                        <p class="text-sm text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
+                        <p class="font-medium"><%= item.itemname %></p>
+                        <p class="text-lg-important text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
                     </div>
                 <% }) %>
             </div>
@@ -95,16 +85,13 @@
         <!-- left Side: Ordered -->
         <div class="bg-white shadow rounded-lg p-4">
             <h2 class="text-lg font-semibold mb-4">Ordered Items</h2>
-            <div id="ordered" class="space-y-2 min-h-[300px] bg-gray-50 rounded p-2 border border-gray-200">
+            <div id="ordered"
+                class="space-y-2 min-h-[300px] bg-gray-50 rounded p-2 border border-gray-200">
                 <% items.filter(item => item.status === "ordered").forEach(item => { %>
                     <div id="<%= item._id %>"
                         class="draggable bg-blue-100 border border-blue-300 rounded p-3">
-                        <p class="font-medium flex items-center">
-                            <!-- Timer before Item Name -->
-                            <span id="timer-<%= item._id %>" class="timer">0:00</span>
-                            <%= item.itemname %>
-                        </p>
-                        <p class="text-sm text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
+                        <p class="font-medium"><%= item.itemname %></p>
+                        <p class="text-lg-important text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
                     </div>
                 <% }) %>
             </div>
@@ -114,16 +101,13 @@
     <!-- Bottom: Ready -->
     <div class="bg-white shadow rounded-lg p-4 mt-6 w-full max-w-4xl">
         <h2 class="text-lg font-semibold mb-4">Ready Items</h2>
-        <div id="ready" class="grid grid-cols-2 gap-2 bg-gray-50 rounded p-2 border border-gray-200">
+        <div id="ready"
+            class="grid grid-cols-2 gap-2 bg-gray-50 rounded p-2 border border-gray-200">
             <% items.filter(item => item.status === "ready").forEach(item => { %>
                 <div id="<%= item._id %>"
                     class="draggable bg-green-100 border border-green-300 rounded p-3 opacity-50">
-                    <p class="font-medium flex items-center">
-                        <!-- Timer before Item Name -->
-                        <span id="timer-<%= item._id %>" class="timer">0:00</span>
-                        <%= item.itemname %>
-                    </p>
-                    <p class="text-sm text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
+                    <p class="font-medium"><%= item.itemname %></p>
+                    <p class="text-lg-important text-gray-600">Table: <%= item.table %>, Qty: <%= item.quantity %></p>
                 </div>
             <% }) %>
         </div>
@@ -151,54 +135,11 @@
                             newStatus,
                         }),
                     });
+
+                    // Refresh the page after the update
+                    location.reload();
                 },
             });
-        });
-
-        // Timer Logic
-        document.addEventListener("DOMContentLoaded", () => {
-            // Get all items from server
-            const items = JSON.parse('<%- JSON.stringify(items) %>'); // JSON data from server
-            console.log(items);
-
-            function updateTimers() {
-                const now = Date.now();
-                items.forEach(item => {
-                    const placedAt = new Date(item.itemPlacedAt).getTime(); // Get timestamp from placedAt
-                    const elapsedTime = now - placedAt; // Time elapsed in milliseconds
-                    const minutes = Math.floor(elapsedTime / 60000); // Convert to minutes
-                    const seconds = Math.floor((elapsedTime % 60000) / 1000); // Remaining seconds
-                    const timerElement = document.getElementById(`timer-${item._id}`);
-                    const itemElement = document.getElementById(item._id);
-
-                    // Stop timer when item is ready
-                    if (item.status === "ready") {
-                        if (timerElement) {
-                            timerElement.textContent = "Ready";
-                        }
-                    } else {
-                        if (timerElement) {
-                            timerElement.textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-                        }
-                    }
-
-                    // Add class if item is delayed (e.g., > 10 minutes)
-                    if (minutes >= 30 && itemElement) {
-                        itemElement.classList.add("delayed");
-                        if (timerElement) {
-                            timerElement.classList.add("delayed-timer"); // Change timer background to red
-                        }
-                    } else if (itemElement) {
-                        itemElement.classList.remove("delayed");
-                        if (timerElement) {
-                            timerElement.classList.remove("delayed-timer"); // Reset timer background
-                        }
-                    }
-                });
-            }
-
-            // Update timers every second
-            setInterval(updateTimers, 1000);
         });
     </script>
 </body>

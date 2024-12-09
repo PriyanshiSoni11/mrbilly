@@ -200,6 +200,11 @@
             itemDiv.remove();
         }
 
+        function removeGroup(groupId) {
+            const groupDiv = document.getElementById(groupId);
+            groupDiv.remove();
+        }
+
         function toggleGroup(groupId) {
             const groupDetails = document.getElementById(`${groupId}-details`);
             groupDetails.classList.toggle("hidden");

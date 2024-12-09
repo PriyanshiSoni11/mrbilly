@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const orders = [
+            {
+                _id: "6751d191b6f84a88ca5ffb69",
+                table: 1,
+                orderid: "ORD5675746772",
+                ispaid: false,
+                placedAt: "2024-12-05T16:15:13.885Z",
+                total: 220,
+                ordertype: "dinning",
+                items: [
+                    { itemname: "veg Noodles", price: 130, quantity: 1, status: "ready" },
+                    { itemname: "Mojito", price: 90, quantity: 1, status: "ready" },
+                ],
+                orderstatus: "completed",
+            },
+            // Add more orders here...
+        ];
+
+        function formatTimeDiff(startTime) {
+            const startDate = new Date(startTime);
+            const currentDate = new Date();
+            const diffInMs = currentDate - startDate;
+
+            const minutes = Math.floor(diffInMs / 60000);
+            const seconds = Math.floor((diffInMs % 60000) / 1000);
+
+            return `${minutes}m ${seconds}s`;
+        }
+
+        function filterOrders() {
+            const tableFilter = document.getElementById("filter-table").value;
+            const typeFilter = document.getElementById("filter-ordertype").value;
+            const statusFilter = document.getElementById("filter-orderstatus").value;
+            const paidFilter = document.getElementById("filter-paid").value;
+
+            const filteredOrders = orders.filter((order) => {
+                return (
+                    (tableFilter === "" || order.table === parseInt(tableFilter)) &&
+                    (typeFilter === "" || order.ordertype === typeFilter) &&
+                    (statusFilter === "" || order.orderstatus === statusFilter) &&
+                    (paidFilter === "" || order.ispaid === (paidFilter === "true"))
+                );
+            });
+
+            renderOrders(filteredOrders);
+        }
+
+        function renderOrders(orderList) {
+            const ordersContainer = document.getElementById("orders-container");
+            ordersContainer.innerHTML = "";
+
+            orderList.forEach((order) => {
+                const orderDiv = document.createElement("div");
+                orderDiv.className = "bg-white shadow-lg p-4 rounded-lg w-72 space-y-4";
+
+                orderDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Order ID: ${order.orderid}</h3>
+                        <p class="text-sm text-gray-500">Table: ${order.table}</p>
+                    </div>
+                    <p class="text-sm text-gray-500">Order Type: ${order.ordertype}</p>
+                    <div class="text-sm text-gray-500">
+                        <strong>Time since placed:</strong>
+                        <span>${formatTimeDiff(order.placedAt)}</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Order Status: <span class="font-medium">${order.orderstatus}</span></p>
+                    <p class="text-sm text-gray-500">Paid: <span class="font-medium">${order.ispaid ? "Yes" : "No"}</span></p>
+                    <p class="text-sm text-gray-500">Total: ₹${order.total}</p>
+                    <button class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
+                        View Details
+                    </button>
+                `;
+
+                ordersContainer.appendChild(orderDiv);
+            });
+        }
+
+        window.onload = () => {
+            renderOrders(orders);
+        };
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Orders Dashboard</h1>
+
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label for="filter-table" class="block text-sm font-medium text-gray-700">Filter by Table</label>
+                <input type="number" id="filter-table" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" oninput="filterOrders()" placeholder="e.g., 1">
+            </div>
+            <div>
+                <label for="filter-ordertype" class="block text-sm font-medium text-gray-700">Filter by Order Type</label>
+                <select id="filter-ordertype" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
+                    <option value="">All</option>
+                    <option value="dinning">Dinning</option>
+                    <option value="takeaway">Takeaway</option>
+                </select>
+            </div>
+            <div>
+                <label for="filter-orderstatus" class="block text-sm font-medium text-gray-700">Filter by Status</label>
+                <select id="filter-orderstatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
+                    <option value="">All</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="canceled">Canceled</option>
+                </select>
+            </div>
+            <div>
+                <label for="filter-paid" class="block text-sm font-medium text-gray-700">Filter by Payment</label>
+                <select id="filter-paid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
+                    <option value="">All</option>
+                    <option value="true">Paid</option>
+                    <option value="false">Unpaid</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Orders Container -->
+        <div id="orders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Orders will be rendered here dynamically -->
+        </div>
+    </div>
+</body>
+
+</html>
