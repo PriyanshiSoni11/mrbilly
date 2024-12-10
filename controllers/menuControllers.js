@@ -37,7 +37,7 @@ module.exports.saveMenu = async function (req, res) {
 
     let user = await userModel.findOne({email:req.user.email})
     user.menus.push(createdmenu._id)
-    user.selectedMenu = createdmenu._id;
+    //user.selectedMenu = createdmenu._id;
     await user.save();
     res.redirect("/home");
 

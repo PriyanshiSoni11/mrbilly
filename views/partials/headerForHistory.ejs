@@ -1,25 +1,22 @@
 <header class="w-full flex items-center justify-between bg-green-800 text-white py-4 px-8 shadow-md">
-    <h1 class="text-2xl font-bold">Order Management</h1>
+    <h1 class="text-2xl font-bold">Order History</h1>
     <nav class="flex items-center space-x-4">
         <!-- View Orders -->
-        <a href="/order/view" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700">
+        <a href="/order/view" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700" aria-label="View Orders">
             📋 View Orders
         </a>
-
-        <!-- Order History -->
-        <a href="/order/history" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700">
-            🕒 History
+        <a href="/order/kitchen" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700" aria-label="Kitchen">
+            🍳 Kitchen
         </a>
-
         <!-- New Order -->
-        <a id="newOrderButton" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700 transition duration-300">
+        <a id="newOrderButton" class="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-green-700 transition duration-300" aria-label="New Order">
             ➕ New Order
         </a>
     </nav>
 </header>
 
 <script>
-    // Function to generate a random Order ID
+    // Function to generate a unique Order ID
     function generateOrderId() {
         const prefix = "ORD";
         const timestamp = Date.now(); // Use timestamp to ensure uniqueness
@@ -30,10 +27,14 @@
     // Dynamically set the URL for the New Order button
     function setOrderButtonUrl() {
         const newOrderButton = document.getElementById("newOrderButton");
-        const orderId = generateOrderId();
-        newOrderButton.href = `/order/take/${orderId}`;
+        if (newOrderButton) {
+            const orderId = generateOrderId();
+            newOrderButton.href = `/order/take/${orderId}`;
+        } else {
+            console.warn("New Order button not found.");
+        }
     }
 
     // Set the button URL when the page loads
-    window.onload = setOrderButtonUrl;
+    window.addEventListener('load', setOrderButtonUrl);
 </script>

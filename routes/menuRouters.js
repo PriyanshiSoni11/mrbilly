@@ -5,6 +5,6 @@ const isloggedin = require("../middlewares/isloggedin")
 
 router.get("/add",isloggedin, addMenu)
 router.post("/save",isloggedin, saveMenu)
-//router.post("/select",isloggedin, selectMenu)
+router.post("/select",isloggedin, selectMenu)
 
 module.exports = router

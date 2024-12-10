@@ -123,3 +123,58 @@ module.exports.kitchenUpdate = async (req, res) => {
         res.redirect("/order/kitchen")
         }
 }
+module.exports.orderHistory = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const recordsPerPage = 5;
+    const skip = (page - 1) * recordsPerPage;
+
+    try {
+        // Fetch the orders with pagination and sort by placedAt (newest first)
+        const orders = await orderModel.find({})
+            .skip(skip)
+            //.limit(recordsPerPage)
+            .sort({ placedAt: -1 });
+
+        // Get the total count of orders to calculate the total pages
+        const totalOrders = await orderModel.countDocuments();
+        const totalPages = Math.ceil(totalOrders / totalOrders);
+
+        // Render the page and send the orders and pagination data
+        res.render("history", {
+            order: orders,
+            currentPage: page,
+            totalPages
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        //res.status(500).send("Internal Server Error");
+    }
+};
+
+
+module.exports.filterHistory = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const recordsPerPage = 20;
+    const skip = (page - 1) * recordsPerPage;
+
+    try {
+        const orders = await orderModel.find({})
+            .skip(skip)
+            .limit(recordsPerPage)
+            .sort({ placedAt: -1 });
+
+        const totalOrders = await orderModel.countDocuments();
+        const totalPages = Math.ceil(totalOrders / recordsPerPage);
+
+        // Send the orders and pagination data as JSON
+        res.json({
+            orders: orders,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+

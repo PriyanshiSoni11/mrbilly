@@ -22,8 +22,9 @@
     // Function to generate a random Order ID
     function generateOrderId() {
         const prefix = "ORD";
-        const randomNumber = Math.floor(1000000000 + Math.random() * 9000000000); // 10-digit random number
-        return `${prefix}${randomNumber}`;
+        const timestamp = Date.now(); // Use timestamp to ensure uniqueness
+        const randomPart = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+        return `${prefix}${timestamp}${randomPart}`;
     }
 
     // Dynamically set the URL for the New Order button

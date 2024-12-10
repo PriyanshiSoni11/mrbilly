@@ -7,131 +7,219 @@
     <title>Orders Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        const orders = [
-            {
-                _id: "6751d191b6f84a88ca5ffb69",
-                table: 1,
-                orderid: "ORD5675746772",
-                ispaid: false,
-                placedAt: "2024-12-05T16:15:13.885Z",
-                total: 220,
-                ordertype: "dinning",
-                items: [
-                    { itemname: "veg Noodles", price: 130, quantity: 1, status: "ready" },
-                    { itemname: "Mojito", price: 90, quantity: 1, status: "ready" },
-                ],
-                orderstatus: "completed",
-            },
-            // Add more orders here...
-        ];
+        const totalPages = '<%- totalPages  %>'
+        let currentPage = 1;  // Start on the first page
+        const orders = JSON.parse('<%- JSON.stringify(order) %>') || [];
 
-        function formatTimeDiff(startTime) {
-            const startDate = new Date(startTime);
-            const currentDate = new Date();
-            const diffInMs = currentDate - startDate;
+        // Function to fetch orders for a specific page
+        // Function to fetch orders for a specific page
+        async function loadPage(page) {
+            if (page < 1 || page > totalPages) return;  // Prevent out-of-bounds page numbers
 
-            const minutes = Math.floor(diffInMs / 60000);
-            const seconds = Math.floor((diffInMs % 60000) / 1000);
+            // Update currentPage
+            currentPage = page;
 
-            return `${minutes}m ${seconds}s`;
+            try {
+                // Fetch the orders for the selected page
+                const response = await fetch(`/order/history?page=${currentPage}`);
+
+                // Ensure the response is valid
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                // Parse the response as JSON
+                const data = await response.json();
+
+                // Render orders
+                renderOrders(data.orders);
+
+                // Update page number and total pages
+                document.getElementById("page-number").textContent = currentPage;
+                document.getElementById("total-pages").textContent = data.totalPages;
+
+                // Disable/Enable buttons based on the current page
+                document.getElementById("prev-btn").disabled = currentPage === 1;
+                document.getElementById("next-btn").disabled = currentPage === data.totalPages;
+
+            } catch (error) {
+                console.error("Error loading page:", error);
+            }
         }
 
-        function filterOrders() {
+        // Function to format the timestamp in IST and calculate time difference
+        function formatTimeDiff(placedAt) {
+            if (!placedAt) return "N/A";
+
+            const startTime = new Date(placedAt);
+            const now = new Date();
+            const diffMs = now - startTime;
+
+            if (isNaN(diffMs)) return "N/A";
+
+            const minutes = Math.floor(diffMs / 60000);
+            const seconds = Math.floor((diffMs % 60000) / 1000);
+
+            // Convert placedAt to IST using Intl.DateTimeFormat
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: true,
+            };
+
+            const indianTime = new Intl.DateTimeFormat('en-IN', options).format(startTime);
+
+            return `${indianTime}`;
+        }
+
+        // Function to render orders in a table
+        function renderOrders(orderList) {
+            const ordersTable = document.getElementById("orders-table-body");
+            ordersTable.innerHTML = ""; // Clear the existing rows
+
+            orderList.forEach((order) => {
+                const row = document.createElement("tr");
+                row.className = "bg-white border-b hover:bg-gray-50";
+
+                row.innerHTML = `
+                    <td class="px-4 py-2 text-center">${order.orderid}</td>
+                    <td class="px-4 py-2 text-center">${order.table}</td>
+                    <td class="px-4 py-2 text-center">${order.ordertype}</td>
+                    <td class="px-4 py-2 text-center">${formatTimeDiff(order.placedAt)}</td>
+                    <td class="px-4 py-2 text-center">${order.orderstatus}</td>
+                    <td class="px-4 py-2 text-center">${order.ispaid ? "Yes" : "No"}</td>
+                    <td class="px-4 py-2 text-center">₹${order.total}</td>
+                `;
+
+                ordersTable.appendChild(row);
+            });
+        }
+
+        // Function to apply filters
+        function applyFilters() {
             const tableFilter = document.getElementById("filter-table").value;
             const typeFilter = document.getElementById("filter-ordertype").value;
             const statusFilter = document.getElementById("filter-orderstatus").value;
-            const paidFilter = document.getElementById("filter-paid").value;
+            const paymentFilter = document.getElementById("filter-paid").value;
 
-            const filteredOrders = orders.filter((order) => {
+            const filteredOrders = orders.filter(order => {
                 return (
-                    (tableFilter === "" || order.table === parseInt(tableFilter)) &&
-                    (typeFilter === "" || order.ordertype === typeFilter) &&
-                    (statusFilter === "" || order.orderstatus === statusFilter) &&
-                    (paidFilter === "" || order.ispaid === (paidFilter === "true"))
+                    (!tableFilter || order.table == tableFilter) &&
+                    (!typeFilter || order.ordertype === typeFilter) &&
+                    (!statusFilter || order.orderstatus === statusFilter) &&
+                    (!paymentFilter || String(order.ispaid) === paymentFilter)
                 );
             });
 
             renderOrders(filteredOrders);
         }
 
-        function renderOrders(orderList) {
-            const ordersContainer = document.getElementById("orders-container");
-            ordersContainer.innerHTML = "";
-
-            orderList.forEach((order) => {
-                const orderDiv = document.createElement("div");
-                orderDiv.className = "bg-white shadow-lg p-4 rounded-lg w-72 space-y-4";
-
-                orderDiv.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold">Order ID: ${order.orderid}</h3>
-                        <p class="text-sm text-gray-500">Table: ${order.table}</p>
-                    </div>
-                    <p class="text-sm text-gray-500">Order Type: ${order.ordertype}</p>
-                    <div class="text-sm text-gray-500">
-                        <strong>Time since placed:</strong>
-                        <span>${formatTimeDiff(order.placedAt)}</span>
-                    </div>
-                    <p class="text-sm text-gray-500">Order Status: <span class="font-medium">${order.orderstatus}</span></p>
-                    <p class="text-sm text-gray-500">Paid: <span class="font-medium">${order.ispaid ? "Yes" : "No"}</span></p>
-                    <p class="text-sm text-gray-500">Total: ₹${order.total}</p>
-                    <button class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
-                        View Details
-                    </button>
-                `;
-
-                ordersContainer.appendChild(orderDiv);
-            });
+        // Add event listeners to filters
+        function addFilterListeners() {
+            document.getElementById("filter-table").addEventListener("input", applyFilters);
+            document.getElementById("filter-ordertype").addEventListener("change", applyFilters);
+            document.getElementById("filter-orderstatus").addEventListener("change", applyFilters);
+            document.getElementById("filter-paid").addEventListener("change", applyFilters);
         }
 
+        // Initialize the page
         window.onload = () => {
-            renderOrders(orders);
+            renderOrders(orders); // Render all orders initially
+            addFilterListeners(); // Attach filter listeners
         };
+        // Initialize by loading the first page
+        //loadPage(1);
     </script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="container mx-auto p-6">
-        <h1 class="text-2xl font-bold mb-4">Orders Dashboard</h1>
 
-        <!-- Filters -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-                <label for="filter-table" class="block text-sm font-medium text-gray-700">Filter by Table</label>
-                <input type="number" id="filter-table" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" oninput="filterOrders()" placeholder="e.g., 1">
-            </div>
-            <div>
-                <label for="filter-ordertype" class="block text-sm font-medium text-gray-700">Filter by Order Type</label>
-                <select id="filter-ordertype" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
-                    <option value="">All</option>
-                    <option value="dinning">Dinning</option>
-                    <option value="takeaway">Takeaway</option>
-                </select>
-            </div>
-            <div>
-                <label for="filter-orderstatus" class="block text-sm font-medium text-gray-700">Filter by Status</label>
-                <select id="filter-orderstatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
-                    <option value="">All</option>
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                    <option value="canceled">Canceled</option>
-                </select>
-            </div>
-            <div>
-                <label for="filter-paid" class="block text-sm font-medium text-gray-700">Filter by Payment</label>
-                <select id="filter-paid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onchange="filterOrders()">
-                    <option value="">All</option>
-                    <option value="true">Paid</option>
-                    <option value="false">Unpaid</option>
-                </select>
-            </div>
-        </div>
+    <%- include('partials/top') %>
+        <%- include('partials/headerForHistory') %>
+            <div class="container mx-auto p-6">
 
-        <!-- Orders Container -->
-        <div id="orders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <!-- Orders will be rendered here dynamically -->
-        </div>
-    </div>
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div>
+                        <label for="filter-table" class="block text-sm font-medium text-gray-700">Filter by
+                            Table</label>
+                        <input type="number" id="filter-table"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="e.g., 1">
+                    </div>
+                    <div>
+                        <label for="filter-ordertype" class="block text-sm font-medium text-gray-700">Filter by
+                            Order
+                            Type</label>
+                        <select id="filter-ordertype" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="">All</option>
+                            <option value="dinning">Dinning</option>
+                            <option value="takeaway">Takeaway</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-orderstatus" class="block text-sm font-medium text-gray-700">Filter by
+                            Status</label>
+                        <select id="filter-orderstatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="">All</option>
+                            <option value="completed">Completed</option>
+                            <option value="placed">Placed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-paid" class="block text-sm font-medium text-gray-700">Filter by
+                            Payment</label>
+                        <select id="filter-paid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="">All</option>
+                            <option value="true">Paid</option>
+                            <option value="false">Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto bg-white shadow-lg rounded-lg">
+                        <thead class="bg-gray-200 text-gray-700">
+                            <tr>
+                                <th class="px-4 py-2 text-center">Order ID</th>
+                                <th class="px-4 py-2 text-center">Table</th>
+                                <th class="px-4 py-2 text-center">Order Type</th>
+                                <th class="px-4 py-2 text-center">Order Placed At</th>
+                                <th class="px-4 py-2 text-center">Order Status</th>
+                                <th class="px-4 py-2 text-center">Paid</th>
+                                <th class="px-4 py-2 text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="text-gray-700">
+                            <!-- Orders will be dynamically rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                 <!-- 
+                <div class="flex justify-between items-center mt-6">
+                    <button id="prev-btn" class="px-4 py-2 bg-blue-500 text-white rounded"
+                        onclick="loadPage(currentPage - 1)" disabled>
+                        Previous Page
+                    </button>
+                    <span class="text-lg font-medium">Page <span id="page-number">
+                            <%= currentPage %>
+                        </span> of <span id="total-pages">
+                            <%= totalPages %>
+                        </span></span>
+                    <button id="next-btn" class="px-4 py-2 bg-blue-500 text-white rounded"
+                        onclick="loadPage(currentPage+1)">Next Page</button>
+                </div>
+                -->
+            </div>
+
 </body>
 
 </html>
