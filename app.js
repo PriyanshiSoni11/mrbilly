@@ -11,6 +11,7 @@ const profileRouters = require('./routes/profileRouters')
 const orderRouters = require('./routes/orderRouters')
 const mongoose = require('./config/mongoose-connect');  // Import mongoose connection config
 
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs')
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
