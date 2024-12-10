@@ -1,6 +1,7 @@
 const userModel = require("../models/user-model")
 const bcrypt = require("bcrypt")
 const { generateToken } = require("../utils/generateToken")
+const mongoose = require('../config/mongoose-connect');  // Import mongoose connection config
 
 
 module.exports.login = function (req, res) {
@@ -56,32 +57,34 @@ module.exports.registerUser = async function (req, res) {
 }
 
 module.exports.loginUser = async function (req, res) {
-    try {
-        let { email, password } = req.body
-        let user = await userModel.findOne({ email })
-        if (!user) {
-            req.flash("error", "Incorrect email or password")
-            return res.redirect("/")
-        }
-
-        bcrypt.compare(password, user.password, function (err, result) {
-            if (!result) {
+        try {
+            let { email, password } = req.body
+            let user = await userModel.findOne({ email })
+            if (!user) {
                 req.flash("error", "Incorrect email or password")
                 return res.redirect("/")
             }
-            let token = generateToken(user);
-            res.cookie("token", token)
-            req.flash("success", `Welcome back ${user.fullname}`)
-            if(user.menus.length >0){
-                return res.redirect("/home")
-            }
-            res.redirect("/profile")
-        })
+    
+            bcrypt.compare(password, user.password, function (err, result) {
+                if (!result) {
+                    req.flash("error", "Incorrect email or password")
+                    return res.redirect("/")
+                }
+                let token = generateToken(user);
+                res.cookie("token", token)
+                req.flash("success", `Welcome back ${user.fullname}`)
+                if(user.menus.length >0){
+                    return res.redirect("/home")
+                }
+                res.redirect("/profile")
+            })
+    
+        } catch (err) {
+            console.log(err.message)
+            req.flash("error", "Something went wrong")
+            res.redirect("/")
+        }
 
-    } catch (err) {
-        req.flash("error", "Something went wrong")
-        res.redirect("/")
-    }
 }
 
 module.exports.logoutUser = async function (req, res) {

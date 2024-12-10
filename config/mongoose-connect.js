@@ -6,16 +6,18 @@ const dbgr = require('debug')('development:mongoose-connection');
 
 const dbUrl = `${process.env.MONGOOSE_CONNECT_SERVER}`;
 
-mongoose
-    .connect(dbUrl) // Removed useUnifiedTopology
+mongoose.connect(dbUrl, {
+    ssl: true, 
+    bufferCommands: true,
+    serverSelectionTimeoutMS: 30000,  
+})
     .then(() => dbgr('Connected to MongoDB'))
-    .catch(err => {
-        dbgr('Error connecting to MongoDB:', err);
-    });
+    .catch(err => dbgr('Error connecting to MongoDB:', err));
 
-mongoose.connection.on('connected', () => dbgr('Mongoose default connection is open'));
-mongoose.connection.on('error', err => dbgr(`Mongoose default connection error: ${err}`));
-mongoose.connection.on('disconnected', () => dbgr('Mongoose default connection is disconnected'));
+
+mongoose.connection.on('connected', () => console.log('Mongoose default connection is open'));
+mongoose.connection.on('error', err => console.log(`Mongoose default connection error: ${err}`));
+mongoose.connection.on('disconnected', () => console.log('Mongoose default connection is disconnected'));
 
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
