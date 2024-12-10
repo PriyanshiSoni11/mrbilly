@@ -9,11 +9,11 @@ mongoose
     .connect(dbUrl)
     .then(function () {
         dbgr("Connected")
-        logger.info("DB cnnected")
+        //logger.info("DB cnnected")
     })
     .catch(function (err) {
         dbgr(err)
-        logger.error("DB couldn't cnnect")
+        //logger.error("DB couldn't cnnect")
     })
 
 module.exports = mongoose.connection;
