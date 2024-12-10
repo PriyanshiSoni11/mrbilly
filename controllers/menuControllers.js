@@ -2,7 +2,6 @@ const userModel = require("../models/user-model")
 const menuModel = require("../models/menu-model")
 const bcrypt = require("bcrypt")
 const { generateToken } = require("../utils/generateToken")
-const logger = require("../config/logger")
 const { error } = require("winston")
 
 module.exports.addMenu = function (req, res) {

@@ -1,8 +1,6 @@
 const userModel = require("../models/user-model")
 const bcrypt = require("bcrypt")
 const { generateToken } = require("../utils/generateToken")
-const logger = require("../config/logger")
-const menuModel = require("../models/menu-model")
 
 
 module.exports.login = function (req, res) {
@@ -52,7 +50,6 @@ module.exports.registerUser = async function (req, res) {
 
 
     } catch (err) {
-        logger.info(err.message)
         req.flash("error", "Something went wrong")
         res.redirect("/")
     }
@@ -82,7 +79,6 @@ module.exports.loginUser = async function (req, res) {
         })
 
     } catch (err) {
-        logger.info(err.message)
         req.flash("error", "Something went wrong")
         res.redirect("/")
     }
