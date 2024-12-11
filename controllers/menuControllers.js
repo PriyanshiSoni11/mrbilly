@@ -1,12 +1,9 @@
 const userModel = require("../models/user-model")
 const menuModel = require("../models/menu-model")
-const bcrypt = require("bcrypt")
-const { generateToken } = require("../utils/generateToken")
-const { error } = require("winston")
 
 module.exports.addMenu = function (req, res) {
     const error = req.flash('error');
-    res.render('addMenu', { error });
+    res.render('addmenu', { error });
 };
 
 module.exports.saveMenu = async function (req, res) {
