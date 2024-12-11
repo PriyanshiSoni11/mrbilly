@@ -9,7 +9,6 @@ const dbUrl = `${process.env.MONGOOSE_CONNECT_SERVER}`;
 mongoose.connect(dbUrl, {
     ssl: true, 
     bufferCommands: true,
-    serverSelectionTimeoutMS: 30000,  
 })
     .then(() => dbgr('Connected to MongoDB'))
     .catch(err => dbgr('Error connecting to MongoDB:', err));
