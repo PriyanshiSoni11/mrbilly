@@ -181,8 +181,16 @@
 </body>
 <script>
     function validatePayment(orderId) {
+
+        const orders =  JSON.parse('<%- JSON.stringify(orders) %>');
+        let isOrderPaid;
+       orders.forEach((order)=>{
+        if(order._id === orderId) {
+            return isOrderPaid = order.ispaid;
+        }
+       })
         const isPaidCheckbox = document.getElementById(`isPaid-${orderId}`);
-        if (!isPaidCheckbox || !isPaidCheckbox.checked) {
+        if (!isPaidCheckbox || !isPaidCheckbox.checked || isOrderPaid) {
             alert("Warning: Please confirm payment before marking the order as complete.");
             return false; // Prevent form submission
         }

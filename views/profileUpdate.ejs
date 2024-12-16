@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Billy Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Function to validate the password match
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm-password").value;
+            var errorMessage = document.getElementById("password-error");
+
+            if (password !== confirmPassword) {
+                errorMessage.style.display = "block";
+                return false; // Prevent form submission
+            } else {
+                errorMessage.style.display = "none";
+                return true;
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <%- include('partials/top') %>
+
+
+        <div class="max-w-3xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
+            <h1 class="text-3xl font-semibold text-green-800 text-center mb-8">Register</h1>
+            <form action="/profile/save" method="POST" class="space-y-6" onsubmit="return validatePassword()">
+                <div>
+                    <h3 class="text-xl font-medium text-green-800 mb-4">About Owner:</h3>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Full Name *</label>
+                    <input type="text" id="name" name="fullname" value="<%= user.fullname || '' %>" required
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Address *</label>
+                    <textarea id="address" name="address" rows="3" required
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"><%= user.address || '' %></textarea>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-medium text-green-800 mb-4">About Restaurant:</h3>
+                    <label for="restaurant-name" class="block text-sm font-medium text-gray-700">Restaurant Name
+                        *</label>
+                    <input type="text" id="restaurant-name" name="restaurantName"
+                        value="<%= user.restaurantname || '' %>" required
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="restaurant-address" class="block text-sm font-medium text-gray-700">Restaurant Address
+                        *</label>
+                    <textarea id="restaurant-address" name="restaurantAddress" rows="3" required
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"><%= user.restaurantaddress || '' %></textarea>
+                </div>
+                <div>
+                    <label for="gstin" class="block text-sm font-medium text-gray-700">GSTIN </label>
+                    <input type="text" id="gstin" name="gstin" value="<%= user.gstin || '' %>"
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="table-count" class="block text-sm font-medium text-gray-700">Table Count </label>
+                    <input type="number" id="table-count" name="tableCount" value="<%= user.tablecount || '' %>"
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-green-800 text-white py-3 rounded-lg text-lg hover:bg-green-700 transition duration-300">Save</button>
+            </form>
+
+        </div>
+
+        <%- include('partials/footer') %>
+</body>
+
+</html>

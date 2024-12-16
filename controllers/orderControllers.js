@@ -3,16 +3,17 @@ const orderModel = require("../models/order-model")
 
 module.exports.takeOrder = async function (req, res) {
     let error = req.flash("error")
-    let user = await userModel.findOne({ email: req.user.email }).select('-password').populate('selectedMenu')
+    let user = await userModel.findOne({ email: req.user.email }).select('-password').populate('categories')
     let order = await orderModel.findOne({ orderid: req.params.orderId })
-    res.render("takeorders", { selectedMenu: user.selectedMenu, tableCount: req.user.tablecount, orderId: req.params.orderId, order: order || null })
+    res.render("takeorders", {tableCount: req.user.tablecount, orderId: req.params.orderId, order: order || null, user })
 }
 
 module.exports.saveOrder = async function (req, res) {
     try {
-        let { orderstatus, orderType, tableNumber, placedAt, items, isPaid, total, orderId } = req.body;
-
+        let { orderstatus, orderType, tableNumber, items, isPaid, total, orderId,user } = req.body;
         const formattedItems = Object.values(items).map(item => ({
+            category: item.category,
+            group: item.group,
             calories: item.calories,
             description: item.description,
             isenabled: item.isenabled,
@@ -27,6 +28,7 @@ module.exports.saveOrder = async function (req, res) {
 
         if (!order) {
             let createOrder = await orderModel.create({
+                user,
                 table: tableNumber,
                 orderid: orderId,
                 ispaid: isPaid,
@@ -41,10 +43,10 @@ module.exports.saveOrder = async function (req, res) {
             let updatedOrder = await orderModel.findOneAndUpdate(
                 { orderid: req.params.orderId },
                 {
+                    user,
                     table: tableNumber,
                     orderid: orderId,
                     ispaid: isPaid,
-                    placedAt,
                     total,
                     ordertype: orderType,
                     items: formattedItems,
@@ -85,16 +87,36 @@ module.exports.completeOrder = async function (req, res) {
     
 };
 
+module.exports.trashOrder = async function (req, res) {
+    try{
+        let { orderId } = req.params; // Get orderId from URL
+        let order = await orderModel.findOneAndUpdate(
+            { orderid: orderId },
+            {
+                orderstatus: req.body.status,
+            },
+            { new: true }
+        );
+        req.flash("success", `Order moved to trash`);
+        res.status(200)
+        res.redirect('/order/history');
+    }
+    catch(err){
+        console.log(err.message)
+    }
+    
+};
+
 module.exports.viewOrder = async function (req, res) {
     let success = req.flash("success")
-    let orders = await orderModel.find({ orderstatus: { $ne: 'completed' } });
+    let orders = await orderModel.find({ user: req.user._id ,orderstatus: { $nin: ['completed', 'cancelled', 'deleted'] }  });
     res.render("orderView", { orders, success })
 }
 
 module.exports.kitchenView = async function (req, res) {
     let success = req.flash("success")
     let error = req.flash("error")
-    let orders = await orderModel.find({ orderstatus: { $ne: 'completed' } });
+    let orders = await orderModel.find({ orderstatus: { $nin: ['completed', 'cancelled', 'deleted'] } });
     
     const items = orders.flatMap(order => order.items.map(item => ({
         ...item._doc,
@@ -123,6 +145,7 @@ module.exports.kitchenUpdate = async (req, res) => {
         res.redirect("/order/kitchen")
         }
 }
+
 module.exports.orderHistory = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const recordsPerPage = 5;
@@ -130,7 +153,7 @@ module.exports.orderHistory = async (req, res) => {
 
     try {
         // Fetch the orders with pagination and sort by placedAt (newest first)
-        const orders = await orderModel.find({})
+        const orders = await orderModel.find({user:req.user._id, orderstatus: { $nin: ['deleted'] }})
             .skip(skip)
             //.limit(recordsPerPage)
             .sort({ placedAt: -1 });
@@ -143,11 +166,38 @@ module.exports.orderHistory = async (req, res) => {
         res.render("history", {
             order: orders,
             currentPage: page,
-            totalPages
+            totalPages,
+            currentUrl: req.originalUrl
         });
     } catch (error) {
         console.error("Error fetching orders:", error);
-        //res.status(500).send("Internal Server Error");
+    }
+};
+module.exports.trashHistory = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const recordsPerPage = 5;
+    const skip = (page - 1) * recordsPerPage;
+
+    try {
+        // Fetch the orders with pagination and sort by placedAt (newest first)
+        const orders = await orderModel.find({user:req.user._id, orderstatus: { $nin: ['placed', 'modified' , 'preparing', 'completed', 'canceled'] }})
+            .skip(skip)
+            //.limit(recordsPerPage)
+            .sort({ placedAt: -1 });
+
+        // Get the total count of orders to calculate the total pages
+        const totalOrders = await orderModel.countDocuments();
+        const totalPages = Math.ceil(totalOrders / totalOrders);
+
+        // Render the page and send the orders and pagination data
+        res.render("history", {
+            order: orders,
+            currentPage: page,
+            totalPages,
+            currentUrl: req.originalUrl
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
     }
 };
 
@@ -158,7 +208,7 @@ module.exports.filterHistory = async (req, res) => {
     const skip = (page - 1) * recordsPerPage;
 
     try {
-        const orders = await orderModel.find({})
+        const orders = await orderModel.find({orderstatus: { $nin: ['completed', 'cancelled', 'deleted'] }})
             .skip(skip)
             .limit(recordsPerPage)
             .sort({ placedAt: -1 });

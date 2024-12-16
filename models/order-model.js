@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const orderSchema = mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    },
     table: Number,
     orderid: String,
     ispaid: Boolean,
@@ -13,6 +17,8 @@ const orderSchema = mongoose.Schema({
     },
     items: [{
             itemname: String,
+            group: String,
+            category: String,
             price: Number,
             quantity: { type: Number, required: true },
             status: {type: String,enum: ['ordered', 'cooking', 'ready', 'delivered'], default: 'ordered' },
@@ -21,7 +27,7 @@ const orderSchema = mongoose.Schema({
         }],
     orderstatus:{
         type: String,
-        enum: ['placed', 'modified' , 'preparing', 'completed'], // Allows only these three values
+        enum: ['placed', 'modified' , 'preparing', 'completed', 'canceled', 'deleted'],
         required: true, // Ensures this field is mandatory
     },
 })

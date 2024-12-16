@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .options-category {
+            max-height: 200px;
+            /* Set a max height for the category */
+            overflow-y: auto;
+            /* Allow vertical scrolling */
+            position: absolute;
+            right: 0;
+            z-index: 10;
+            top: 0;
+            /* Ensure it’s aligned properly */
+        }
+    </style>
     <script>
         const totalPages = '<%- totalPages  %>'
         let currentPage = 1;  // Start on the first page
@@ -87,6 +100,7 @@
                 row.className = "bg-white border-b hover:bg-gray-50";
 
                 row.innerHTML = `
+                    <button class="w-full h-full text-center bg-zinc-0 text-white text-sm py-3 rounded-lg text-lg hover:bg-zinc-100 transition duration-300">🔍</button>
                     <td class="px-4 py-2 text-center">${order.orderid}</td>
                     <td class="px-4 py-2 text-center">${order.table}</td>
                     <td class="px-4 py-2 text-center">${order.ordertype}</td>
@@ -94,6 +108,7 @@
                     <td class="px-4 py-2 text-center">${order.orderstatus}</td>
                     <td class="px-4 py-2 text-center">${order.ispaid ? "Yes" : "No"}</td>
                     <td class="px-4 py-2 text-center">₹${order.total}</td>
+
                 `;
 
                 ordersTable.appendChild(row);
@@ -140,86 +155,245 @@
 <body class="bg-gray-100">
 
     <%- include('partials/top') %>
-        <%- include('partials/headerForHistory') %>
-            <div class="container mx-auto p-6">
+        <% if (currentUrl==='/order/history' ) { %>
+            <%- include('partials/headerForHistory') %>
+                <% } else if (currentUrl==='/order/trash' ) { %>
+                    <%- include('partials/headerForTrashHistory') %>
+                        <% } %>
+                            <div class="container mx-auto p-6 my-auto">
 
-                <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div>
-                        <label for="filter-table" class="block text-sm font-medium text-gray-700">Filter by
-                            Table</label>
-                        <input type="number" id="filter-table"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="e.g., 1">
-                    </div>
-                    <div>
-                        <label for="filter-ordertype" class="block text-sm font-medium text-gray-700">Filter by
-                            Order
-                            Type</label>
-                        <select id="filter-ordertype" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <option value="">All</option>
-                            <option value="dinning">Dinning</option>
-                            <option value="takeaway">Takeaway</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-orderstatus" class="block text-sm font-medium text-gray-700">Filter by
-                            Status</label>
-                        <select id="filter-orderstatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <option value="">All</option>
-                            <option value="completed">Completed</option>
-                            <option value="placed">Placed</option>
-                            <option value="canceled">Canceled</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-paid" class="block text-sm font-medium text-gray-700">Filter by
-                            Payment</label>
-                        <select id="filter-paid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <option value="">All</option>
-                            <option value="true">Paid</option>
-                            <option value="false">Unpaid</option>
-                        </select>
-                    </div>
-                </div>
+                                <!-- Orders Table -->
+                                <div class="overflow-x-auto mb-50" id="table">
 
-                <!-- Orders Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto bg-white shadow-lg rounded-lg">
-                        <thead class="bg-gray-200 text-gray-700">
-                            <tr>
-                                <th class="px-4 py-2 text-center">Order ID</th>
-                                <th class="px-4 py-2 text-center">Table</th>
-                                <th class="px-4 py-2 text-center">Order Type</th>
-                                <th class="px-4 py-2 text-center">Order Placed At</th>
-                                <th class="px-4 py-2 text-center">Order Status</th>
-                                <th class="px-4 py-2 text-center">Paid</th>
-                                <th class="px-4 py-2 text-center">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table-body" class="text-gray-700">
-                            <!-- Orders will be dynamically rendered here -->
-                        </tbody>
-                    </table>
-                </div>
+                                    <!-- Filters -->
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                        <div>
+                                            <label for="filter-table"
+                                                class="block text-sm font-medium text-gray-700">Filter by
+                                                Table</label>
+                                            <input type="number" id="filter-table"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                placeholder="e.g., 1">
+                                        </div>
+                                        <div>
+                                            <label for="filter-ordertype"
+                                                class="block text-sm font-medium text-gray-700">Filter by
+                                                Order
+                                                Type</label>
+                                            <select id="filter-ordertype"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                                <option value="">All</option>
+                                                <option value="dinning">Dinning</option>
+                                                <option value="takeaway">Takeaway</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="filter-orderstatus"
+                                                class="block text-sm font-medium text-gray-700">Filter by
+                                                Status</label>
+                                            <select id="filter-orderstatus"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                                <option value="">All</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="placed">Placed</option>
+                                                <option value="canceled">Canceled</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="filter-paid"
+                                                class="block text-sm font-medium text-gray-700">Filter by
+                                                Payment</label>
+                                            <select id="filter-paid"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                                <option value="">All</option>
+                                                <option value="true">Paid</option>
+                                                <option value="false">Unpaid</option>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                <!-- Pagination -->
-                 <!-- 
-                <div class="flex justify-between items-center mt-6">
-                    <button id="prev-btn" class="px-4 py-2 bg-blue-500 text-white rounded"
-                        onclick="loadPage(currentPage - 1)" disabled>
-                        Previous Page
-                    </button>
-                    <span class="text-lg font-medium">Page <span id="page-number">
-                            <%= currentPage %>
-                        </span> of <span id="total-pages">
-                            <%= totalPages %>
-                        </span></span>
-                    <button id="next-btn" class="px-4 py-2 bg-blue-500 text-white rounded"
-                        onclick="loadPage(currentPage+1)">Next Page</button>
-                </div>
-                -->
-            </div>
+                                    <table class="min-w-full table-auto bg-white shadow-lg rounded-lg">
+                                        <thead class="bg-gray-200 text-gray-700">
+                                            <tr>
+                                                <th class="px-4 py-2 text-center min-h-screen">View Details</th>
+                                                <th class="px-4 py-2 text-center">Order ID</th>
+                                                <th class="px-4 py-2 text-center">Table</th>
+                                                <th class="px-4 py-2 text-center">Order Type</th>
+                                                <th class="px-4 py-2 text-center">Order Placed At</th>
+                                                <th class="px-4 py-2 text-center">Order Status</th>
+                                                <th class="px-4 py-2 text-center">Paid</th>
+                                                <th class="px-4 py-2 text-center">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="orders-table-body" class="text-gray-700">
+                                            <!-- Orders will be dynamically rendered here -->
+                                        </tbody>
+                                    </table>
+                                </div>
 
+                                <!-- Modal -->
+                                <div id="order-modal"
+                                    class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+                                    <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+                                        <div class="p-4 border-b flex justify-between items-center">
+                                            <h2 class="text-lg font-bold text-gray-800">Order Details</h2>
+                                            <button id="close-modal"
+                                                class="text-gray-500 hover:text-red-800">Close</button>
+                                        </div>
+                                        <div class="p-4">
+                                            <p><strong>Order ID:</strong> <span id="modal-order-id"></span></p>
+                                            <p><strong>Table:</strong> <span id="modal-order-table"></span></p>
+                                            <p><strong>Order Type:</strong> <span id="modal-order-type"></span></p>
+                                            <p><strong>Order Status:</strong> <span id="modal-order-status"></span></p>
+                                            <p><strong>Paid:</strong> <span id="modal-order-paid"></span></p>
+                                            <p><strong>Total:</strong> ₹<span id="modal-order-total"></span></p>
+                                            <h3 class="mt-4 font-bold">Items:</h3>
+                                            <ul id="modal-order-items" class="list-disc ml-5"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                // Function to open the modal with order details
+                                function openModal(order) {
+                                    document.getElementById("modal-order-id").textContent = order.orderid;
+                                    document.getElementById("modal-order-table").textContent = order.table;
+                                    document.getElementById("modal-order-type").textContent = order.ordertype;
+                                    document.getElementById("modal-order-status").textContent = order.orderstatus;
+                                    document.getElementById("modal-order-paid").textContent = order.ispaid ? "Yes" : "No";
+                                    document.getElementById("modal-order-total").textContent = order.total;
+
+                                    // Populate items
+                                    const itemsList = document.getElementById("modal-order-items");
+                                    itemsList.innerHTML = ""; // Clear existing items
+                                    order.items.forEach(item => {
+                                        const listItem = document.createElement("li");
+                                        listItem.textContent = `${item.itemname} (x${item.quantity}) - ₹${item.price}`;
+                                        itemsList.appendChild(listItem);
+                                    });
+
+                                    // Show modal
+                                    document.getElementById("order-modal").classList.remove("hidden");
+                                }
+
+                                // Function to close the modal
+                                function closeModal() {
+                                    document.getElementById("order-modal").classList.add("hidden");
+                                }
+
+                                // Add event listener to close button
+                                document.getElementById("close-modal").addEventListener("click", closeModal);
+
+                                // Render orders with "View Details" buttons
+                                async function renderOrders(orderList) {
+                                    const ordersTable = document.getElementById("orders-table-body");
+                                    ordersTable.innerHTML = ""; // Clear the existing rows
+
+                                    orderList.forEach((order) => {
+                                        const row = document.createElement("tr");
+                                        row.className = "bg-white border-b hover:bg-gray-50";
+
+                                        let optionsHTML = `
+                                        <td class="px-4 py-2 text-center relative">
+                                            <button class="options-btn">&#x22EE;</button>
+                                            <div class="options-category hidden absolute right-0 bg-white border border-gray-300 shadow-lg rounded-md z-10">
+                                                    <button class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-200 view-details-btn" 
+                                                                 data-order='${JSON.stringify(order)}'>View Details</button>
+                                                `;
+
+                                        // Only show "Cancel Order" if the order is not canceled or deleted
+                                        if (order.orderstatus !== 'canceled' && order.orderstatus !== 'deleted') {
+                                            optionsHTML += `<button class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-200 cancel-order-btn" data-order-id="${order.orderid}">Cancel Order</button>`;
+                                        }
+
+                                        // Only show "Delete Order" if the order is not deleted
+                                        if (order.orderstatus !== 'deleted') {
+                                            optionsHTML += `<button class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-200 delete-order-btn" data-order-id="${order.orderid}">Delete Order</button>`;
+                                        }
+
+                                        optionsHTML += `
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-2 text-center">${order.orderid}</td>
+                                                    <td class="px-4 py-2 text-center">${order.table}</td>
+                                                    <td class="px-4 py-2 text-center">${order.ordertype}</td>
+                                                    <td class="px-4 py-2 text-center">${formatTimeDiff(order.placedAt)}</td>
+                                                    <td class="px-4 py-2 text-center">${order.orderstatus}</td>
+                                                    <td class="px-4 py-2 text-center">${order.ispaid ? "Yes" : "No"}</td>
+                                                    <td class="px-4 py-2 text-center">₹${order.total}</td>
+                                                `;
+
+                                        row.innerHTML = optionsHTML;
+
+
+
+                                        // Add event listener for "View Details" button
+                                        row.querySelector(".view-details-btn").addEventListener("click", function () {
+                                            const orderData = JSON.parse(this.getAttribute("data-order"));
+                                            openModal(orderData);
+                                        });
+
+                                        if (order.orderstatus !== 'canceled' && order.orderstatus !== 'deleted') {
+                                            // Add event listener for "Cancel Order" button
+                                            row.querySelector(".cancel-order-btn").addEventListener("click", async function () {
+                                                const orderId = this.getAttribute("data-order-id");
+                                                if (confirm("Are you sure you want to cancel this order?")) {
+                                                    const response = await fetch(`/order/trash/${orderId}`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ status: 'canceled' })
+                                                    });
+                                                }
+                                            });
+                                        }
+                                        if (order.orderstatus !== 'deleted') {
+                                            // Add event listener for "Delete Order" button
+                                            row.querySelector(".delete-order-btn").addEventListener("click", async function () {
+                                                const orderId = this.getAttribute("data-order-id");
+                                                if (confirm("Are you sure you want to delete this order?")) {
+                                                    const response = await fetch(`/order/trash/${orderId}`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ status: 'deleted' })
+                                                    });
+                                                }
+                                            });
+                                        }
+
+
+
+
+                                        // Add event listener for options category toggle
+                                        const optionsBtn = row.querySelector(".options-btn");
+                                        const optionsCategory = row.querySelector(".options-category");
+
+                                        optionsBtn.addEventListener("click", (e) => {
+                                            optionsCategory.classList.toggle("hidden");
+
+                                            // Close all other categories when one is opened
+                                            document.querySelectorAll(".options-category").forEach(otherCategory => {
+                                                if (otherCategory !== optionsCategory) {
+                                                    otherCategory.classList.add("hidden");
+                                                }
+                                            });
+
+                                            e.stopPropagation(); // Prevent event propagation to close the category immediately
+                                        });
+
+                                        // Close the dropdown when clicking outside
+                                        document.addEventListener("click", () => {
+                                            document.querySelectorAll(".options-category").forEach(category => {
+                                                category.classList.add("hidden");
+                                            });
+                                        });
+
+                                        // Append the row to the table
+                                        ordersTable.appendChild(row);
+                                    });
+                                }
+
+                            </script>
 </body>
 
 </html>

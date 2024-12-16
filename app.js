@@ -6,7 +6,7 @@ const app = express();
 const flash = require("connect-flash")
 const path = require('path')
 const indexRouters = require('./routes/indexRouters')
-const menuRouters = require('./routes/menuRouters')
+const categoryRouters = require('./routes/categoryRouters')
 const profileRouters = require('./routes/profileRouters')
 const orderRouters = require('./routes/orderRouters')
 const mongoose = require('./config/mongoose-connect');  // Import mongoose connection config
@@ -25,7 +25,7 @@ app.use(expressSession({
 app.use(flash());
 
 app.use("/", indexRouters);
-app.use("/menu", menuRouters);
+app.use("/category", categoryRouters);
 app.use("/profile", profileRouters);
 app.use("/order", orderRouters);
 

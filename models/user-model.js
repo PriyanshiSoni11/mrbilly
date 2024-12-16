@@ -9,17 +9,10 @@ const userSchema = mongoose.Schema({
     restaurantaddress: String,
     gstin: String,
     tablecount: Number,
-    menus: [{
+    categories: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'menu',
+        ref: 'category',
     }],
-    selectedMenu: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'menu',
-        default: function () {
-            return this.menus && this.menus.length > 0 ? this.menus[0] : null;
-        },
-    }
 
 })
 

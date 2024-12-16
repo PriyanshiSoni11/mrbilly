@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-const menuSchema = mongoose.Schema({
-    menuname : String,
-    ismenuenabled: Boolean,
+const categorySchema = mongoose.Schema({
+    categoryname : String,
+    iscategoryenabled: Boolean,
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
@@ -11,6 +11,8 @@ const menuSchema = mongoose.Schema({
         groupname: String,
         isgroupenable: Boolean,
         items : [{
+            category: String,
+            group: String,
             itemname: String, 
             price: Number,
             isveg: Boolean,
@@ -21,4 +23,4 @@ const menuSchema = mongoose.Schema({
     }],
 })
 
-module.exports = mongoose.model('menu',menuSchema )
+module.exports = mongoose.model('category',categorySchema )

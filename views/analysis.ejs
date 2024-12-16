@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Datepicker library -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+
+<body>
+    <%- include('partials/top') %>
+
+        <div class="container mt-5">
+            <h1 class="text-center">Sales Analysis</h1>
+
+            <!-- Date Range Dropdown -->
+            <div class="text-center mt-4">
+                <label for="dateRange" class="form-label">Select Date Range:</label>
+                <select id="dateRange" class="form-select w-50 mx-auto">
+                    <option value="today" selected>Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="lastWeek">Last Week</option>
+                    <option value="lastMonth">Last Month</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+            </div>
+
+            <!-- Custom Range Calendar -->
+            <div id="customRangeContainer" class="mt-3 text-center d-none p-4 bg-gray-100 rounded">
+                <input id="customRange" type="text" class="form-control w-50 mx-auto"
+                    placeholder="Select custom range" />
+                <button id="applyCustomRange" class="btn btn-primary mt-2">Apply</button>
+                <button id="closeCustomRange" class="btn btn-secondary mt-2">Close</button>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5>Total Amount Earned 💰</h5>
+                            <p class="display-6">
+                                ₹<%= totalAmount %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5>Number of Orders 🧾 </h5>
+                            <p class="display-6">
+                                <%= totalOrders %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5>Number of Servings 🍽️</h5>
+                            <p class="display-6">
+                                <%= totalItems %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Section -->
+            <div class="mt-5">
+                <h3 class="text-center">Sales Per Hour</h3>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <script>
+            // Async function to handle the entire initialization process
+            async function initializePage() {
+                try {
+                    // Step 1: Initialize Flatpickr for custom range
+                    const datePicker = flatpickr("#customRange", {
+                        mode: "range",
+                        dateFormat: "Y-m-d", // Format dates as yyyy-mm-dd
+                        onClose: function (selectedDates) {
+                            if (selectedDates.length === 2) {
+                                // Function to convert date to local date in yyyy-mm-dd format
+                                function formatDateToLocalString(date) {
+                                    const localDate = new Date(date);
+                                    const year = localDate.getFullYear();
+                                    const month = (localDate.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+                                    const day = localDate.getDate().toString().padStart(2, '0'); // Ensure day is two digits
+                                    return `${year}-${month}-${day}`;
+                                }
+
+                                // Get the selected dates and convert them to local format
+                                const fromDate = formatDateToLocalString(selectedDates[0]);
+                                const toDate = formatDateToLocalString(selectedDates[1]);
+
+                                console.log(`Selected range: ${fromDate} to ${toDate}`);  // Log to verify
+                            }
+                        }
+                    });
+
+                    // Step 2: Fetch today's data by default
+                    const today = new Date();
+                    const fromDate = today.toISOString().split("T")[0]; // Format as yyyy-mm-dd
+                    const toDate = fromDate; // Same day for "today"
+                    await fetchAndRenderChart(fromDate, toDate);
+
+                } catch (error) {
+                    console.error("Error initializing the page:", error);
+                }
+            }
+
+            // Async function to fetch data and render the chart
+            async function fetchAndRenderChart(fromDate, toDate) {
+                try {
+                    // API call to fetch orders within the selected date range
+                    console.log(`/analysis?fromDate=${fromDate}&toDate=${toDate}`);
+                    const response = await fetch(`/analysis?fromDate=${fromDate}&toDate=${toDate}`);
+                    const data = await response.json();
+
+                    console.log("Fetched data:", JSON.stringify(data));
+
+                    // Process fetched data (e.g., orders) for Chart.js
+                    const salesPerHour = Array(24).fill(0);
+                    const ordersPerHour = Array(24).fill(0);
+
+                    data.orders.forEach(order => {
+                        const placedAt = new Date(order.placedAt);
+                        const hour = placedAt.getHours();
+                        if (hour >= 11 && hour <= 23) {
+                            salesPerHour[hour] += order.total;
+                            ordersPerHour[hour] += 1;
+                        }
+                    });
+
+                    const hours = Array.from({ length: 13 }, (_, i) => `${i + 11}:00`);
+                    const salesData = salesPerHour.slice(11, 24);
+                    const ordersData = ordersPerHour.slice(11, 24);
+
+                    // Step 3: Initialize or update the Chart.js graph
+                    const ctx = document.getElementById("salesChart").getContext("2d");
+                    if (window.salesChart) {
+                        // Update existing chart
+                        window.salesChart.data.datasets[0].data = salesData;
+                        window.salesChart.update();
+                    } else {
+                        // Create a new chart
+                        window.salesChart = new Chart(ctx, {
+                            type: "bar",
+                            data: {
+                                labels: hours,
+                                datasets: [{
+                                    label: "Sales per Hour",
+                                    data: salesData,
+                                    backgroundColor: "rgba(54, 162, 235, 0.5)",
+                                    borderColor: "rgba(54, 162, 235, 1)",
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                const hourIndex = context.dataIndex;
+                                                const salesAmount = salesData[hourIndex].toFixed(2);
+                                                const orderCount = ordersData[hourIndex];
+                                                return [
+                                                    `Sales: ₹${salesAmount}`,
+                                                    `Orders: ${orderCount}`
+                                                ];
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: { title: { display: true, text: "Hour of Day" } },
+                                    y: { title: { display: true, text: "Sales Amount" }, beginAtZero: true }
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error fetching or rendering chart data:", error);
+                }
+            }
+
+            function getDateRangeForOption(option) {
+                const today = new Date();
+                let fromDate, toDate;
+
+                switch (option) {
+                    case 'yesterday':
+                        today.setDate(today.getDate() - 1);
+                        fromDate = today.toISOString().split("T")[0];
+                        toDate = fromDate;
+                        break;
+                    case 'lastWeek':
+                        // Set `fromDate` to 7 days ago, `toDate` to today
+                        const lastWeekStart = new Date();
+                        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+                        fromDate = lastWeekStart.toISOString().split("T")[0];
+                        toDate = new Date().toISOString().split("T")[0]; // today
+                        break;
+                    case 'lastMonth':
+                        // Set `fromDate` to 1 month ago, `toDate` to today
+                        const lastMonthStart = new Date();
+                        lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+                        fromDate = lastMonthStart.toISOString().split("T")[0];
+                        toDate = new Date().toISOString().split("T")[0]; // today
+                        break;
+                    case 'custom':
+                        return null; // Custom range will be handled separately
+                    default:
+                        fromDate = toDate = today.toISOString().split("T")[0];
+                }
+
+                return { fromDate, toDate };
+            }
+
+            document.getElementById("dateRange").addEventListener("change", function () {
+                const customRangeContainer = document.getElementById("customRangeContainer");
+                const selectedValue = this.value;
+
+                if (selectedValue === "custom") {
+                    customRangeContainer.classList.remove("d-none");
+                } else {
+                    customRangeContainer.classList.add("d-none");
+                    const { fromDate, toDate } = getDateRangeForOption(selectedValue);
+                    fetchAndRenderChart(fromDate, toDate);
+                }
+            });
+
+            // Close the custom range container when "Close" button is clicked
+            document.getElementById("closeCustomRange").addEventListener("click", function () {
+                document.getElementById("customRangeContainer").classList.add("d-none");
+            });
+
+            // Apply the custom date range
+            document.getElementById("applyCustomRange").addEventListener("click", function () {
+                const selectedDates = flatpickr("#customRange").selectedDates;
+                console.log(JSON.stringify(selectedDates))
+                if (selectedDates.length === 2) {
+                    const [fromDate, toDate] = selectedDates.map(date => date.toISOString().split("T")[0]);
+                    fetchAndRenderChart(fromDate, toDate);
+                } else {
+                    console.error("Please select a valid date range.");
+                }
+            });
+
+            // Start the initialization process
+            initializePage();
+        </script>
+</body>
+
+</html>

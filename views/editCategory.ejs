@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Category</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <%- include('partials/headerForAddCategory') %>
+        <main class="max-w-4xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
+            <h2 class="text-2xl font-semibold text-green-800 text-center mb-6">Edit Category</h2>
+
+            <form action="/category/update/<%= category._id %>" method="POST" id="category-form" class="space-y-6">
+                <!-- Category Name -->
+                <div>
+                    <label for="category-name" class="block text-sm font-medium text-gray-700">Category Name *</label>
+                    <input type="text" id="category-name" name="categoryName" value="<%= category.categoryname %>" required
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none mt-2">
+                </div>
+
+                <!-- Collapse Buttons -->
+                <div class="flex space-x-4 mt-4">
+                    <button type="button"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition duration-300"
+                        onclick="collapseAll()">
+                        Collapse or Expend all
+                    </button>
+                </div>
+                <!-- Groups -->
+                <div id="groups-container" class="space-y-6">
+                    <% category.groups.forEach((group, groupIndex)=> { %>
+                        <div id="group-<%= groupIndex %>" class="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                            <div class="flex justify-between items-center">
+                                <span>
+                                    Group Name:
+                                    <input type="text" id="group-<%= groupIndex %>-name"
+                                        name="groups[<%= groupIndex %>][groupName]" value="<%= group.groupname %>"
+                                        required
+                                        class="font-semibold border-b border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                </span>
+                                <div class="space-x-2">
+                                    <button type="button" class="text-green-800 hover:text-green-600"
+                                        onclick="toggleGroup('group-<%= groupIndex %>')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 12H4" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="group-<%= groupIndex %>-details" class="mt-4">
+                                <!-- Enable Group -->
+                                <label for="group-<%= groupIndex %>-enable"
+                                    class="block text-sm font-medium text-gray-700">Enable Group</label>
+                                <input type="checkbox" id="group-<%= groupIndex %>-enable"
+                                    name="groups[<%= groupIndex %>][isgroupenable]"
+                                    class="h-5 w-5 text-green-600 rounded-sm" <%=group.isgroupenable ? 'checked' : '' %>
+                                >
+
+                                <!-- Items Container -->
+                                <div id="group-<%= groupIndex %>-items-container" class="mt-4 space-y-4">
+                                    <% group.items.forEach((item, itemIndex)=> { %>
+                                        <div id="group-<%= groupIndex %>-item-<%= itemIndex %>"
+                                            class="p-2 bg-white rounded shadow space-y-2 relative">
+                                            <div class="flex justify-between items-center">
+                                                <span id="group-<%= groupIndex %>-item-<%= itemIndex %>-name-display"
+                                                    class="font-semibold text-gray-700">
+                                                    <%= item.itemname %>
+                                                </span>
+                                                <div class="space-x-2">
+                                                    <button type="button" class="text-green-800 hover:text-green-600"
+                                                        onclick="toggleItem('group-<%= groupIndex %>-item-<%= itemIndex %>')">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M20 12H4" />
+                                                        </svg>
+                                                    </button>
+
+                                                </div>
+                                            </div>
+
+                                            <div id="group-<%= groupIndex %>-item-<%= itemIndex %>-details">
+                                                <label>Item Name:
+                                                    <input type="text"
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][itemname]"
+                                                        value="<%= item.itemname %>" required
+                                                        class="p-2 border border-gray-300 rounded-lg w-full">
+                                                </label>
+                                                <label>Price:
+                                                    <input type="number"
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][price]"
+                                                        value="<%= item.price %>" required
+                                                        class="p-2 border border-gray-300 rounded-lg w-full">
+                                                </label>
+                                                <label>Is Veg:
+                                                    <input type="checkbox"
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][isveg]"
+                                                        class="h-5 w-5 text-green-600 rounded-sm mr-3 mt-2"
+                                                        <%=item.isveg ? 'checked' : '' %> >
+                                                </label>
+                                                <label>Is Enabled:
+                                                    <input type="checkbox"
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][isenabled]"
+                                                        class="h-5 w-5 text-green-600 rounded-sm mr-3 mt-2"
+                                                        <%=item.isenabled ? 'checked' : '' %> >
+                                                </label>
+                                                <br />
+                                                <label>Calories:
+                                                    <input type="number"
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][calories]"
+                                                        value="<%= item.calories %>"
+                                                        class="p-2 border border-gray-300 rounded-lg w-full">
+                                                </label>
+                                                <label>Description:
+                                                    <textarea
+                                                        name="groups[<%= groupIndex %>][items][<%= itemIndex %>][description]"
+                                                        rows="3"
+                                                        class="p-2 border border-gray-300 rounded-lg w-full"><%= item.description %></textarea>
+                                                </label>
+                                                <button type="button" class="text-red-600 mr-3 hover:text-red-800"
+                                                    onclick="removeItem('<%= groupIndex %>', '<%= itemIndex %>')">
+                                                    Remove Item
+                                                </button>
+                                                <button type="button" class="text-green-800 hover:text-green-600"
+                                                    onclick="saveItem('<%= groupIndex %>', '<%= itemIndex %>')">
+                                                    Save Item
+                                                </button>
+                                            </div>
+
+                                        </div>
+
+                                        <% }); %>
+                                </div>
+
+                                <button type="button"
+                                    class="bg-blue-500 mt-3 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-400"
+                                    onclick="addItemToGroup('<%= groupIndex %>')">
+                                    + Add Item
+                                </button>
+                                <br />
+                                <button type="button" class="text-red-600 hover:text-red-400 mt-3 mr-3"
+                                    onclick="removeGroup('<%= groupIndex %>')">
+                                    Remove Group
+                                </button>
+                                <button type="button" class="text-green-800 hover:text-green-600 mt-3"
+                                    onclick="saveGroup('<%= groupIndex %>')">
+                                    Save Group
+                                </button>
+                            </div>
+
+                        </div>
+                        <% }); %>
+                </div>
+
+                <button type="button"
+                    class="bg-green-800 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                    onclick="addGroup()">
+                    + Add New Group
+                </button>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-6">
+                    <button type="submit" id="save-category"
+                        class="bg-green-800 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300">
+                        Update Category
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <script>
+            // Function to collapse all groups
+            function collapseAll() {
+                const groupDetails = document.querySelectorAll('[id^="group-"][id$="-details"]');
+                groupDetails.forEach(detail => detail.classList.toggle("hidden"));
+            }
+
+            function toggleGroup(groupId) {
+                const groupDetails = document.getElementById(`${groupId}-details`);
+                groupDetails.classList.toggle("hidden");
+            }
+
+            function toggleItem(itemId) {
+                const itemDetails = document.getElementById(`${itemId}-details`);
+                itemDetails.classList.toggle("hidden");
+            }
+
+            function addGroup() {
+                const groupIndex = document.querySelectorAll('[id^="group-"]').length;
+                const groupsContainer = document.getElementById('groups-container');
+                const newGroupHTML = `
+                <div id="group-${groupIndex}" class="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                    <div class="flex justify-between items-center">
+                        <span>
+                            Group Name: 
+                            <input type="text" name="groups[${groupIndex}][groupName]" required
+                                class="font-semibold border-b border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        </span>
+                        <div class="space-x-2">
+                            <button type="button" class="text-green-800 hover:text-green-600" onclick="toggleGroup('group-${groupIndex}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="group-${groupIndex}-details" class="mt-4">
+                        <label for="group-${groupIndex}-enable" class="block text-sm font-medium text-gray-700">Enable Group</label>
+                        <input type="checkbox" name="groups[${groupIndex}][isgroupenable]" class="h-5 w-5 text-green-600 rounded-sm">
+
+                        <div id="group-${groupIndex}-items-container" class="mt-4 space-y-4">
+                            <!-- New items will be added here -->
+                        <button type="button" class="bg-blue-500 mt-3 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-400" onclick="addItemToGroup(${groupIndex})">
+                            + Add Item
+                        </button>
+                        </div>
+                        <button type="button" class="text-red-600 hover:text-red-400 mt-3 mr-3" onclick="removeGroup(${groupIndex})">
+                                Remove Group
+                            </button>
+                            <button type="button" class="text-green-800 hover:text-green-600 mt-3" onclick="saveGroup(${groupIndex})">
+                                Save Group
+                            </button>
+                    </div>
+                </div>
+            `;
+                groupsContainer.insertAdjacentHTML('beforeend', newGroupHTML);
+            }
+
+            function removeGroup(groupIndex) {
+                const group = document.getElementById(`group-${groupIndex}`);
+                group.remove();
+            }
+
+            function saveGroup(groupIndex) {
+                const groupName = document.getElementById(`group-${groupIndex}-name`).value;
+                // Here you can add code to handle saving the group data via AJAX or form submission
+                alert('Group Saved: ' + groupName);
+            }
+
+            function addItemToGroup(groupIndex) {
+                const itemIndex = document.querySelectorAll(`#group-${groupIndex}-items-container [id^="group-${groupIndex}-item-"]`).length;
+                const itemsContainer = document.getElementById(`group-${groupIndex}-items-container`);
+                const newItemHTML = `
+                <div id="group-${groupIndex}-item-${itemIndex}" class="p-2 bg-white rounded shadow space-y-2 relative">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-700">
+                            New Item
+                        </span>
+                        <button type="button" class="text-green-800 hover:text-green-600" onclick="toggleItem('group-${groupIndex}-item-${itemIndex}')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                        </button>
+
+                    </div>
+                    <div id="group-${groupIndex}-item-${itemIndex}-details">
+                        <label>Item Name:
+                            <input type="text" name="groups[${groupIndex}][items][${itemIndex}][itemname]" required
+                                class="p-2 border border-gray-300 rounded-lg w-full">
+                        </label>
+                        <label>Price:
+                            <input type="number" name="groups[${groupIndex}][items][${itemIndex}][price]" required
+                                class="p-2 border border-gray-300 rounded-lg w-full">
+                        </label>
+                        <label>Is Veg:
+                            <input type="checkbox" name="groups[${groupIndex}][items][${itemIndex}][isveg]"
+                                class="h-5 w-5 text-green-600 rounded-sm">
+                        </label>
+                        <label>Is Enabled:
+                            <input type="checkbox" name="groups[${groupIndex}][items][${itemIndex}][isenabled]"
+                                class="h-5 w-5 text-green-600 rounded-sm">
+                        </label>
+                        <label>Calories:
+                            <input type="number" name="groups[${groupIndex}][items][${itemIndex}][calories]"
+                                class="p-2 border border-gray-300 rounded-lg w-full">
+                        </label>
+                        <label>Description:
+                            <textarea name="groups[${groupIndex}][items][${itemIndex}][description]" rows="3"
+                                class="p-2 border border-gray-300 rounded-lg w-full"></textarea>
+                        </label>
+                                                <button type="button" class="text-red-600 mr-3 hover:text-red-800" onclick="removeItem(${groupIndex}, ${itemIndex})">
+                            Remove Item
+                        </button>
+                        <button type="button" class="text-green-800 hover:text-green-600" onclick="saveItem(${groupIndex}, ${itemIndex})">
+                            Save Item
+                        </button>
+                    </div>
+                </div>
+            `;
+                itemsContainer.insertAdjacentHTML('beforeend', newItemHTML);
+            }
+
+            function removeItem(groupIndex, itemIndex) {
+                const item = document.getElementById(`group-${groupIndex}-item-${itemIndex}`);
+                item.remove();
+            }
+
+            function saveItem(groupIndex, itemIndex) {
+                const itemName = document.getElementById(`group-${groupIndex}-item-${itemIndex}`).querySelector('input[name*="itemname"]').value;
+                // Here you can add code to handle saving the item data via AJAX or form submission
+                alert('Item Saved: ' + itemName);
+            }
+        </script>
+</body>
+
+</html>
